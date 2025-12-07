@@ -1,0 +1,372 @@
+"""QWEN Vision-Language Model integration module."""
+
+import logging
+import os
+import threading
+import time
+from typing import Any, Dict, List, Optional, Tuple
+
+import torch
+from PIL import Image
+
+from config import (
+    MODEL_NAME,
+    VL_GENERATION_CONFIG,
+    USE_FLASH_ATTENTION,
+    QUANTIZATION_MODE,
+    LOW_CPU_MEM_USAGE
+)
+
+logger = logging.getLogger(__name__)
+
+# Global model instance (singleton pattern for efficiency)
+_model = None
+_processor = None
+_loading_lock = threading.Lock()
+_loading_status = {
+    "state": "not_started",  # not_started, loading, ready, error
+    "progress": "",
+    "started_at": None,
+    "completed_at": None,
+    "error": None
+}
+
+
+def get_loading_status() -> Dict[str, Any]:
+    """Get the current model loading status."""
+    status = _loading_status.copy()
+    if status["started_at"] and not status["completed_at"]:
+        status["elapsed_seconds"] = time.time() - status["started_at"]
+    return status
+
+
+def is_model_ready() -> bool:
+    """Check if the model is loaded and ready for inference."""
+    return _loading_status["state"] == "ready" and _model is not None
+
+
+def load_model(force_reload: bool = False) -> Tuple[Any, Any]:
+    """
+    Load the QWEN VL model and processor.
+
+    Uses singleton pattern to avoid reloading the model on each request.
+
+    Args:
+        force_reload: If True, reload the model even if already loaded
+
+    Returns:
+        Tuple of (model, processor)
+
+    Raises:
+        RuntimeError: If model loading fails
+    """
+    global _model, _processor, _loading_status
+
+    with _loading_lock:
+        if _model is not None and _processor is not None and not force_reload:
+            return _model, _processor
+
+        if _loading_status["state"] == "loading":
+            logger.warning("Model is already being loaded by another thread")
+            # Wait for loading to complete
+            while _loading_status["state"] == "loading":
+                time.sleep(1)
+            if _loading_status["state"] == "ready":
+                return _model, _processor
+            else:
+                raise RuntimeError(f"Model loading failed: {_loading_status.get('error')}")
+
+        _loading_status = {
+            "state": "loading",
+            "progress": "Initializing...",
+            "started_at": time.time(),
+            "completed_at": None,
+            "error": None
+        }
+
+    try:
+        logger.info(f"Loading model: {MODEL_NAME}")
+        logger.info(f"Quantization mode: {QUANTIZATION_MODE}")
+        logger.info(f"Low CPU memory usage: {LOW_CPU_MEM_USAGE}")
+        _loading_status["progress"] = "Importing transformers..."
+
+        from transformers import AutoProcessor
+
+        # Try to import BitsAndBytesConfig for quantization (optional)
+        BitsAndBytesConfig = None
+        if QUANTIZATION_MODE in ("4bit", "8bit"):
+            try:
+                from transformers import BitsAndBytesConfig as BnBConfig
+                BitsAndBytesConfig = BnBConfig
+                logger.info("BitsAndBytesConfig available for quantization")
+            except ImportError:
+                logger.warning(
+                    "BitsAndBytesConfig not available. Install bitsandbytes for quantization. "
+                    "Falling back to full precision."
+                )
+
+        # Determine model class based on model name
+        # Qwen2-VL and Qwen2.5-VL use Qwen2VLForConditionalGeneration
+        # Qwen3-VL uses Qwen3VLForConditionalGeneration (requires git transformers)
+        is_qwen3 = "qwen3" in MODEL_NAME.lower()
+
+        if is_qwen3:
+            try:
+                from transformers import Qwen3VLForConditionalGeneration
+                model_class = Qwen3VLForConditionalGeneration
+                logger.info("Using Qwen3VLForConditionalGeneration")
+            except ImportError:
+                raise ImportError(
+                    "Qwen3VLForConditionalGeneration not available. "
+                    "Qwen3-VL requires transformers from git main. "
+                    "Use Qwen2-VL models instead (set MODEL_NAME=Qwen/Qwen2-VL-7B-Instruct)"
+                )
+        else:
+            from transformers import Qwen2VLForConditionalGeneration
+            model_class = Qwen2VLForConditionalGeneration
+            logger.info("Using Qwen2VLForConditionalGeneration")
+
+        # Detect if GPU is available
+        has_gpu = torch.cuda.is_available()
+        logger.info(f"GPU available: {has_gpu}")
+
+        if has_gpu:
+            gpu_name = torch.cuda.get_device_name(0)
+            gpu_mem = torch.cuda.get_device_properties(0).total_memory / 1024**3
+            logger.info(f"GPU: {gpu_name} ({gpu_mem:.1f} GB)")
+        else:
+            logger.info("Running on CPU - model will be slower but functional")
+            # Set CPU-specific optimizations
+            torch.set_num_threads(int(os.environ.get("OMP_NUM_THREADS", 4)))
+            logger.info(f"CPU threads: {torch.get_num_threads()}")
+
+        # Build loading configuration
+        load_kwargs = {
+            "low_cpu_mem_usage": LOW_CPU_MEM_USAGE,
+        }
+
+        # Device mapping: auto for GPU, cpu for CPU-only
+        if has_gpu:
+            load_kwargs["device_map"] = "auto"
+        else:
+            # For CPU-only, don't use device_map - load directly to CPU
+            load_kwargs["device_map"] = "cpu"
+            # Use float32 for CPU (bfloat16 may not be supported on all CPUs)
+            load_kwargs["torch_dtype"] = torch.float32
+            logger.info("Using CPU with float32 precision")
+
+        # Configure quantization (requires GPU - skip for CPU)
+        if has_gpu and QUANTIZATION_MODE == "4bit" and BitsAndBytesConfig:
+            _loading_status["progress"] = "Configuring 4-bit quantization..."
+            logger.info("Using 4-bit quantization")
+            quantization_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_compute_dtype=torch.bfloat16,
+                bnb_4bit_use_double_quant=True,
+                bnb_4bit_quant_type="nf4"
+            )
+            load_kwargs["quantization_config"] = quantization_config
+        elif has_gpu and QUANTIZATION_MODE == "8bit" and BitsAndBytesConfig:
+            _loading_status["progress"] = "Configuring 8-bit quantization..."
+            logger.info("Using 8-bit quantization")
+            quantization_config = BitsAndBytesConfig(
+                load_in_8bit=True,
+            )
+            load_kwargs["quantization_config"] = quantization_config
+        elif has_gpu:
+            # GPU with full precision
+            logger.info("Using GPU with full precision")
+            load_kwargs["torch_dtype"] = torch.bfloat16 if USE_FLASH_ATTENTION else "auto"
+
+        # Add flash attention if enabled (GPU only)
+        if USE_FLASH_ATTENTION and has_gpu:
+            logger.info("Using Flash Attention 2")
+            load_kwargs["attn_implementation"] = "flash_attention_2"
+            if "torch_dtype" not in load_kwargs:
+                load_kwargs["torch_dtype"] = torch.bfloat16
+        elif not has_gpu:
+            logger.info("Flash Attention not available on CPU")
+
+        quant_info = f"({QUANTIZATION_MODE})" if QUANTIZATION_MODE != "none" else "(full precision)"
+        _loading_status["progress"] = f"Downloading/loading model weights {quant_info}..."
+        logger.info("Starting model download/loading - this may take several minutes")
+
+        load_start = time.time()
+
+        try:
+            _model = model_class.from_pretrained(
+                MODEL_NAME,
+                **load_kwargs
+            )
+        except OSError as e:
+            if "paging file" in str(e).lower() or "1455" in str(e):
+                error_msg = (
+                    f"Insufficient virtual memory (Windows error 1455). "
+                    f"Model: {MODEL_NAME}, Quantization: {QUANTIZATION_MODE}. "
+                    f"Solutions: 1) Use smaller model (MODEL_NAME=Qwen/Qwen2-VL-2B-Instruct), "
+                    f"2) Set QUANTIZATION_MODE=4bit, "
+                    f"3) Increase Windows page file. See logs for details."
+                )
+                logger.error(error_msg)
+                raise OSError(error_msg) from e
+            raise
+
+        load_duration = time.time() - load_start
+        logger.info(f"Model weights loaded in {load_duration:.1f} seconds")
+
+        _loading_status["progress"] = "Loading processor..."
+        _processor = AutoProcessor.from_pretrained(MODEL_NAME)
+
+        with _loading_lock:
+            _loading_status["state"] = "ready"
+            _loading_status["progress"] = "Model ready"
+            _loading_status["completed_at"] = time.time()
+
+        total_duration = _loading_status["completed_at"] - _loading_status["started_at"]
+        logger.info(f"Model loaded successfully in {total_duration:.1f} seconds")
+
+        # Log memory usage
+        if torch.cuda.is_available():
+            for i in range(torch.cuda.device_count()):
+                allocated = torch.cuda.memory_allocated(i) / 1024**3
+                reserved = torch.cuda.memory_reserved(i) / 1024**3
+                logger.info(f"GPU {i}: {allocated:.2f}GB allocated, {reserved:.2f}GB reserved")
+
+        return _model, _processor
+
+    except Exception as e:
+        with _loading_lock:
+            _loading_status["state"] = "error"
+            _loading_status["error"] = str(e)
+            _loading_status["completed_at"] = time.time()
+        logger.exception("Failed to load model")
+        raise
+
+
+def preload_model_async():
+    """Start loading the model in a background thread."""
+    if _loading_status["state"] in ("loading", "ready"):
+        logger.info(f"Model already {_loading_status['state']}, skipping preload")
+        return
+
+    def _load():
+        try:
+            load_model()
+        except Exception as e:
+            logger.error(f"Background model loading failed: {e}")
+
+    thread = threading.Thread(target=_load, name="ModelPreloader", daemon=True)
+    thread.start()
+    logger.info("Started background model preloading thread")
+
+
+def extract_with_vision(
+    messages: List[Dict],
+    generation_config: Optional[Dict] = None
+) -> str:
+    """
+    Run extraction using the vision-language model.
+    
+    Args:
+        messages: List of message dictionaries with text and image content
+        generation_config: Optional override for generation parameters
+        
+    Returns:
+        Model response text
+    """
+    model, processor = load_model()
+    
+    # Merge generation config
+    config = VL_GENERATION_CONFIG.copy()
+    if generation_config:
+        config.update(generation_config)
+    
+    # Prepare inputs
+    inputs = processor.apply_chat_template(
+        messages,
+        tokenize=True,
+        add_generation_prompt=True,
+        return_dict=True,
+        return_tensors="pt"
+    )
+    inputs = inputs.to(model.device)
+    
+    # Generate response
+    with torch.no_grad():
+        generated_ids = model.generate(**inputs, **config)
+    
+    # Trim input tokens from output
+    generated_ids_trimmed = [
+        out_ids[len(in_ids):] 
+        for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+    ]
+    
+    # Decode response
+    output_text = processor.batch_decode(
+        generated_ids_trimmed,
+        skip_special_tokens=True,
+        clean_up_tokenization_spaces=False
+    )
+    
+    return output_text[0] if output_text else ""
+
+
+def extract_with_text_only(
+    messages: List[Dict],
+    generation_config: Optional[Dict] = None
+) -> str:
+    """
+    Run extraction using text-only input (no images).
+    
+    Args:
+        messages: List of message dictionaries with text content
+        generation_config: Optional override for generation parameters
+        
+    Returns:
+        Model response text
+    """
+    # For text-only, we can still use the same model
+    return extract_with_vision(messages, generation_config)
+
+
+def get_model_info() -> Dict[str, Any]:
+    """Get information about the loaded model."""
+    loading_status = get_loading_status()
+
+    info = {
+        "model_name": MODEL_NAME,
+        "quantization_mode": QUANTIZATION_MODE,
+        "loading_state": loading_status["state"],
+        "loading_progress": loading_status["progress"],
+    }
+
+    if loading_status["started_at"]:
+        if loading_status["completed_at"]:
+            info["load_time_seconds"] = loading_status["completed_at"] - loading_status["started_at"]
+        else:
+            info["elapsed_seconds"] = time.time() - loading_status["started_at"]
+
+    if loading_status["error"]:
+        info["error"] = loading_status["error"]
+
+    if _model is not None:
+        info["device"] = str(_model.device)
+        info["dtype"] = str(_model.dtype)
+
+        # Check if model is quantized
+        if hasattr(_model, 'is_quantized'):
+            info["is_quantized"] = _model.is_quantized
+
+        # Add memory info if GPU available
+        if torch.cuda.is_available():
+            gpu_info = []
+            for i in range(torch.cuda.device_count()):
+                gpu_info.append({
+                    "gpu": i,
+                    "allocated_gb": round(torch.cuda.memory_allocated(i) / 1024**3, 2),
+                    "reserved_gb": round(torch.cuda.memory_reserved(i) / 1024**3, 2)
+                })
+            info["gpu_memory"] = gpu_info
+
+    return info
+

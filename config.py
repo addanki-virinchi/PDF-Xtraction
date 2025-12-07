@@ -1,0 +1,97 @@
+"""Configuration settings for the PDF Extraction application."""
+
+import os
+from pathlib import Path
+
+# Base directory
+BASE_DIR = Path(__file__).resolve().parent
+
+# Upload and output directories
+UPLOAD_FOLDER = BASE_DIR / "uploads"
+OUTPUT_FOLDER = BASE_DIR / "outputs"
+
+# Ensure directories exist
+UPLOAD_FOLDER.mkdir(exist_ok=True)
+OUTPUT_FOLDER.mkdir(exist_ok=True)
+
+# Temp directory for model loading and large file operations
+# Set to D: drive to avoid filling C: drive SSD
+# This affects Hugging Face cache and PyTorch temp files
+TEMP_DIR = os.getenv("TEMP_DIR", "D:\\temp\\pdf_extraction")
+HF_CACHE_DIR = os.getenv("HF_HOME", "D:\\huggingface_cache")
+
+# Create temp directories if they don't exist
+Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
+Path(HF_CACHE_DIR).mkdir(parents=True, exist_ok=True)
+
+# Set environment variables for Hugging Face and PyTorch
+# These must be set before importing transformers/torch
+os.environ["TMPDIR"] = TEMP_DIR
+os.environ["TEMP"] = TEMP_DIR
+os.environ["TMP"] = TEMP_DIR
+os.environ["HF_HOME"] = HF_CACHE_DIR
+os.environ["TRANSFORMERS_CACHE"] = os.path.join(HF_CACHE_DIR, "transformers")
+os.environ["HF_DATASETS_CACHE"] = os.path.join(HF_CACHE_DIR, "datasets")
+
+# Enable faster downloads with hf_transfer (if installed)
+# Install with: pip install hf_transfer
+# Can provide 3-5x faster download speeds
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = os.getenv("HF_HUB_ENABLE_HF_TRANSFER", "1")
+
+# Allowed file extensions
+ALLOWED_PDF_EXTENSIONS = {'.pdf'}
+ALLOWED_EXCEL_EXTENSIONS = {'.xlsx', '.xls'}
+
+# Model configuration
+# Available Qwen VL models (set via MODEL_NAME environment variable):
+#   - "Qwen/Qwen2-VL-2B-Instruct"   (~4.5GB download, ~5-6GB RAM) - Best for 16GB RAM
+#   - "Qwen/Qwen2-VL-7B-Instruct"   (~15GB download, ~14-16GB RAM) - Needs 24GB+ RAM
+#   - "Qwen/Qwen2.5-VL-7B-Instruct" (~15GB download, ~14-16GB RAM) - Needs 24GB+ RAM
+#   - "Qwen/Qwen3-VL-32B-Instruct"  (~66GB download, ~17GB RAM with 4bit) - Needs GPU
+DEFAULT_MODEL = "Qwen/Qwen2-VL-2B-Instruct"  # Best for 16GB RAM CPU-only systems
+MODEL_NAME = os.getenv("MODEL_NAME", DEFAULT_MODEL)
+
+MAX_NEW_TOKENS = 8192  # Reduced for CPU to avoid OOM
+USE_FLASH_ATTENTION = os.getenv("USE_FLASH_ATTENTION", "false").lower() == "true"
+
+# Quantization settings to reduce memory usage
+# Options: "none", "4bit", "8bit"
+# - "none": Full precision (recommended for 2B model on CPU)
+# - "8bit": ~50% memory reduction (requires bitsandbytes + GPU)
+# - "4bit": ~75% memory reduction (requires bitsandbytes + GPU)
+# Note: Quantization requires GPU - use "none" for CPU-only
+QUANTIZATION_MODE = os.getenv("QUANTIZATION_MODE", "none").lower()
+
+# Memory optimization settings
+LOW_CPU_MEM_USAGE = os.getenv("LOW_CPU_MEM_USAGE", "true").lower() == "true"
+
+# CPU-specific settings
+# Number of threads for PyTorch CPU operations
+CPU_THREADS = int(os.getenv("CPU_THREADS", "0"))  # 0 = auto-detect
+if CPU_THREADS > 0:
+    torch_threads = CPU_THREADS
+else:
+    import multiprocessing
+    # Use half of available cores for inference, leave rest for OS
+    torch_threads = max(1, multiprocessing.cpu_count() // 2)
+
+os.environ["OMP_NUM_THREADS"] = str(torch_threads)
+os.environ["MKL_NUM_THREADS"] = str(torch_threads)
+
+# Generation parameters for Vision-Language model
+VL_GENERATION_CONFIG = {
+    "max_new_tokens": MAX_NEW_TOKENS,
+    "do_sample": True,
+    "top_p": 0.8,
+    "top_k": 20,
+    "temperature": 0.7,
+    "repetition_penalty": 1.0,
+}
+
+# Flask configuration
+class FlaskConfig:
+    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
+    MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50MB max file size
+    UPLOAD_FOLDER = str(UPLOAD_FOLDER)
+    OUTPUT_FOLDER = str(OUTPUT_FOLDER)
+

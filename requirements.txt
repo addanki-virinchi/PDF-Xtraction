@@ -1,0 +1,37 @@
+# Flask Web Framework
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# PDF Processing
+PyPDF2>=3.0.0
+pdfplumber>=0.10.0
+
+# Excel Processing
+openpyxl>=3.1.0
+pandas>=2.0.0
+
+# QWEN Model (Vision-Language)
+torch>=2.0.0
+torchvision>=0.15.0  # Required for Qwen2-VL image/video processing
+# Use stable transformers (4.46+ supports Qwen2-VL, git main has Windows issues)
+transformers>=4.46.0
+accelerate>=0.25.0
+qwen-vl-utils>=0.0.8
+safetensors>=0.4.0
+
+# Quantization support (optional - only needed for 32B+ models)
+# Note: bitsandbytes has limited Windows support, skip if using smaller models
+# For Windows, use: pip install bitsandbytes-windows
+# bitsandbytes>=0.41.0
+
+# Image Processing (for PDF to image conversion)
+pdf2image>=1.16.0
+Pillow>=10.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+werkzeug>=3.0.0
+
+# Faster HuggingFace downloads (3-5x speedup)
+hf_transfer>=0.1.4
+

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Data Extractor</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 40px 20px; }
+        .container { max-width: 700px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); padding: 40px; }
+        h1 { color: #333; margin-bottom: 10px; font-size: 28px; }
+        .subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
+        .form-group { margin-bottom: 25px; }
+        label { display: block; font-weight: 600; color: #333; margin-bottom: 8px; font-size: 14px; }
+        .file-input-wrapper { position: relative; border: 2px dashed #ddd; border-radius: 10px; padding: 30px; text-align: center; transition: all 0.3s; cursor: pointer; }
+        .file-input-wrapper:hover { border-color: #667eea; background: #f8f9ff; }
+        .file-input-wrapper.has-file { border-color: #22c55e; background: #f0fdf4; }
+        .file-input-wrapper input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .file-icon { font-size: 40px; margin-bottom: 10px; }
+        .file-text { color: #666; font-size: 14px; }
+        .file-name { color: #22c55e; font-weight: 600; margin-top: 8px; }
+        textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; resize: vertical; min-height: 80px; font-family: inherit; }
+        textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .checkbox-group { display: flex; gap: 20px; flex-wrap: wrap; }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+        .checkbox-label input { width: 18px; height: 18px; accent-color: #667eea; }
+        .btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .status { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; }
+        .status.loading { display: block; background: #fef3c7; color: #92400e; }
+        .status.success { display: block; background: #d1fae5; color: #065f46; }
+        .status.error { display: block; background: #fee2e2; color: #991b1b; }
+        .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin 0.75s linear infinite; margin-right: 8px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .model-status { padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; text-align: center; background: #f3f4f6; color: #6b7280; }
+        .model-status.ready { background: #d1fae5; color: #065f46; }
+        .model-status.loading { background: #fef3c7; color: #92400e; }
+        .model-status.error { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 PDF Data Extractor</h1>
+        <p class="subtitle">Extract structured data from PDFs using AI. Upload your PDF and Excel template to get started.</p>
+
+        <div class="model-status" id="modelStatus">⏳ Checking AI model status...</div>
+
+        <form id="extractForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label>PDF Document</label>
+                <div class="file-input-wrapper" id="pdfWrapper">
+                    <div class="file-icon">📑</div>
+                    <div class="file-text">Click or drag to upload PDF</div>
+                    <div class="file-name" id="pdfName"></div>
+                    <input type="file" name="pdf_file" id="pdfFile" accept=".pdf" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Excel Template (defines fields to extract)</label>
+                <div class="file-input-wrapper" id="excelWrapper">
+                    <div class="file-icon">📊</div>
+                    <div class="file-text">Click or drag to upload Excel (.xlsx)</div>
+                    <div class="file-name" id="excelName"></div>
+                    <input type="file" name="excel_template" id="excelFile" accept=".xlsx,.xls" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Custom Instructions (Optional)</label>
+                <textarea name="custom_prompt" placeholder="Add any specific instructions for the AI... (e.g., 'Focus on invoice line items' or 'Extract all dates in DD/MM/YYYY format')"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <label class="checkbox-label"><input type="checkbox" name="use_vision" checked> Use Vision Mode (process PDF as images)</label>
+                    <label class="checkbox-label"><input type="checkbox" name="return_json"> Return JSON (instead of Excel download)</label>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn" id="submitBtn">🚀 Extract Data</button>
+        </form>
+        
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        // Model status tracking
+        let modelReady = false;
+        let statusCheckInterval = null;
+
+        // Check model status on page load
+        async function checkModelStatus() {
+            try {
+                const response = await fetch('/api/model-status');
+                const data = await response.json();
+                const statusEl = document.getElementById('modelStatus');
+
+                if (data.is_ready) {
+                    modelReady = true;
+                    statusEl.className = 'model-status ready';
+                    statusEl.innerHTML = '✅ AI Model Ready';
+                    if (statusCheckInterval) {
+                        clearInterval(statusCheckInterval);
+                        statusCheckInterval = null;
+                    }
+                } else if (data.state === 'loading') {
+                    modelReady = false;
+                    const elapsed = Math.round(data.elapsed_seconds || 0);
+                    statusEl.className = 'model-status loading';
+                    statusEl.innerHTML = `<span class="spinner"></span> Loading AI Model... (${elapsed}s) - ${data.progress || 'Please wait'}`;
+                } else if (data.state === 'error') {
+                    modelReady = false;
+                    statusEl.className = 'model-status error';
+                    statusEl.innerHTML = `❌ Model Error: ${data.error}`;
+                } else {
+                    modelReady = false;
+                    statusEl.className = 'model-status';
+                    statusEl.innerHTML = '⏳ Model not loaded yet';
+                }
+
+                return data;
+            } catch (err) {
+                console.error('Failed to check model status:', err);
+                return null;
+            }
+        }
+
+        // Start polling for model status
+        function startStatusPolling() {
+            checkModelStatus();
+            if (!statusCheckInterval) {
+                statusCheckInterval = setInterval(checkModelStatus, 5000);
+            }
+        }
+
+        // Initialize on page load
+        startStatusPolling();
+
+        // File input visual feedback
+        ['pdf', 'excel'].forEach(type => {
+            const input = document.getElementById(`${type}File`);
+            const wrapper = document.getElementById(`${type}Wrapper`);
+            const nameEl = document.getElementById(`${type}Name`);
+
+            input.addEventListener('change', function() {
+                if (this.files.length) {
+                    wrapper.classList.add('has-file');
+                    nameEl.textContent = this.files[0].name;
+                } else {
+                    wrapper.classList.remove('has-file');
+                    nameEl.textContent = '';
+                }
+            });
+        });
+
+        // Form submission with model loading handling
+        document.getElementById('extractForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const btn = document.getElementById('submitBtn');
+            const status = document.getElementById('status');
+            const formData = new FormData(form);
+
+            // Handle checkboxes
+            formData.set('use_vision', form.use_vision.checked ? 'true' : 'false');
+            formData.set('return_json', form.return_json.checked ? 'true' : 'false');
+
+            btn.disabled = true;
+            status.className = 'status loading';
+            status.innerHTML = '<span class="spinner"></span> Processing... This may take a few minutes.';
+
+            // Check model status first
+            const modelStatus = await checkModelStatus();
+            if (!modelReady) {
+                status.className = 'status loading';
+                status.innerHTML = `<span class="spinner"></span> Waiting for AI model to load... (${modelStatus?.progress || 'Initializing'})<br><small>This may take 5-15 minutes on first request. Please wait.</small>`;
+
+                // Poll until ready, then auto-submit
+                const waitForModel = setInterval(async () => {
+                    const s = await checkModelStatus();
+                    if (s?.is_ready) {
+                        clearInterval(waitForModel);
+                        status.innerHTML = '<span class="spinner"></span> Model ready! Starting extraction...';
+                        // Retry the extraction
+                        submitExtraction(form, formData, btn, status);
+                    } else if (s?.state === 'error') {
+                        clearInterval(waitForModel);
+                        status.className = 'status error';
+                        status.innerHTML = `<strong>Error:</strong> Model failed to load: ${s.error}`;
+                        btn.disabled = false;
+                    } else {
+                        status.innerHTML = `<span class="spinner"></span> Waiting for AI model... (${Math.round(s?.elapsed_seconds || 0)}s) - ${s?.progress || 'Loading'}<br><small>Please wait, do not close this page.</small>`;
+                    }
+                }, 5000);
+                return;
+            }
+
+            await submitExtraction(form, formData, btn, status);
+        });
+
+        async function submitExtraction(form, formData, btn, status) {
+            try {
+                // Use AbortController for timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minute timeout
+
+                status.innerHTML = '<span class="spinner"></span> Extracting data... This may take a few minutes.';
+
+                const response = await fetch('/api/extract', {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                // Handle 503 (model loading)
+                if (response.status === 503) {
+                    const data = await response.json();
+                    status.className = 'status loading';
+                    status.innerHTML = `<span class="spinner"></span> ${data.error}<br><small>Progress: ${data.loading_progress || 'Loading...'}</small>`;
+                    btn.disabled = false;
+                    return;
+                }
+
+                if (form.return_json.checked) {
+                    const data = await response.json();
+                    if (data.error) throw new Error(data.error);
+                    status.className = 'status success';
+                    status.innerHTML = `<strong>Success!</strong><br><pre style="margin-top:10px;overflow:auto;max-height:300px">${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(err.error || 'Extraction failed');
+                    }
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = response.headers.get('Content-Disposition')?.match(/filename="?(.+)"?/)?.[1] || 'extracted_data.xlsx';
+                    a.click();
+                    status.className = 'status success';
+                    status.innerHTML = '<strong>Success!</strong> Your file has been downloaded.';
+                }
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    status.className = 'status error';
+                    status.innerHTML = '<strong>Error:</strong> Request timed out. The model may still be processing - try again in a moment.';
+                } else {
+                    status.className = 'status error';
+                    status.innerHTML = `<strong>Error:</strong> ${err.message}`;
+                }
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
+
