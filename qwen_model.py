@@ -266,22 +266,37 @@ def extract_with_vision(
 ) -> str:
     """
     Run extraction using the vision-language model.
-    
+
     Args:
         messages: List of message dictionaries with text and image content
         generation_config: Optional override for generation parameters
-        
+
     Returns:
         Model response text
     """
+    import gc
+
     model, processor = load_model()
-    
+
     # Merge generation config
     config = VL_GENERATION_CONFIG.copy()
     if generation_config:
         config.update(generation_config)
-    
+
+    # Log inference start for timing
+    inference_start = time.time()
+    logger.info(f"Starting inference with max_new_tokens={config.get('max_new_tokens', 'default')}")
+
+    # Count images in messages for logging
+    image_count = 0
+    for msg in messages:
+        if isinstance(msg.get("content"), list):
+            image_count += sum(1 for c in msg["content"] if c.get("type") == "image")
+    logger.info(f"Processing {image_count} images")
+
     # Prepare inputs
+    logger.debug("Preparing inputs...")
+    prep_start = time.time()
     inputs = processor.apply_chat_template(
         messages,
         tokenize=True,
@@ -290,24 +305,50 @@ def extract_with_vision(
         return_tensors="pt"
     )
     inputs = inputs.to(model.device)
-    
-    # Generate response
-    with torch.no_grad():
-        generated_ids = model.generate(**inputs, **config)
-    
+    logger.debug(f"Input preparation took {time.time() - prep_start:.1f}s")
+
+    # Log input size
+    input_tokens = inputs.input_ids.shape[1] if hasattr(inputs, 'input_ids') else 0
+    logger.info(f"Input tokens: {input_tokens}")
+
+    # Generate response with memory optimization
+    # Use inference_mode for better CPU performance (slightly faster than no_grad)
+    logger.info("Starting model generation (this may take several minutes on CPU)...")
+    gen_start = time.time()
+
+    try:
+        with torch.inference_mode():
+            generated_ids = model.generate(**inputs, **config)
+    finally:
+        # Clear input tensors to free memory during decoding
+        del inputs
+        gc.collect()
+
+    gen_duration = time.time() - gen_start
+    output_tokens = generated_ids.shape[1] - input_tokens if input_tokens > 0 else generated_ids.shape[1]
+    tokens_per_sec = output_tokens / gen_duration if gen_duration > 0 else 0
+    logger.info(f"Generation took {gen_duration:.1f}s ({output_tokens} tokens, {tokens_per_sec:.1f} tokens/sec)")
+
     # Trim input tokens from output
     generated_ids_trimmed = [
-        out_ids[len(in_ids):] 
-        for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+        out_ids[input_tokens:]
+        for out_ids in generated_ids
     ]
-    
+
     # Decode response
     output_text = processor.batch_decode(
         generated_ids_trimmed,
         skip_special_tokens=True,
         clean_up_tokenization_spaces=False
     )
-    
+
+    # Final cleanup
+    del generated_ids, generated_ids_trimmed
+    gc.collect()
+
+    total_duration = time.time() - inference_start
+    logger.info(f"Total inference time: {total_duration:.1f}s")
+
     return output_text[0] if output_text else ""
 
 

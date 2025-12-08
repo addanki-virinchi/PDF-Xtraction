@@ -51,8 +51,29 @@ ALLOWED_EXCEL_EXTENSIONS = {'.xlsx', '.xls'}
 DEFAULT_MODEL = "Qwen/Qwen2-VL-2B-Instruct"  # Best for 16GB RAM CPU-only systems
 MODEL_NAME = os.getenv("MODEL_NAME", DEFAULT_MODEL)
 
-MAX_NEW_TOKENS = 8192  # Reduced for CPU to avoid OOM
+# Generation settings
+# MAX_NEW_TOKENS controls how much text the model generates
+# Lower values = faster processing, higher values = more complete responses
+# For CPU: 2048-4096 is recommended (faster), for GPU: 8192+ is fine
+MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "2048"))  # Reduced for CPU speed
 USE_FLASH_ATTENTION = os.getenv("USE_FLASH_ATTENTION", "false").lower() == "true"
+
+# =============================================================================
+# CPU Optimization Settings
+# =============================================================================
+# These settings significantly impact processing speed on CPU
+
+# PDF Image Processing - Lower values = faster but potentially less accurate
+# DPI: 72=fast/low quality, 100=balanced, 150=high quality/slow
+PDF_DPI = int(os.getenv("PDF_DPI", "100"))  # Default 100 for CPU (was 150)
+
+# Max dimension: Resize images so longest side doesn't exceed this
+# 640=very fast, 800=fast, 1024=balanced, 2048=high quality/slow
+PDF_MAX_DIMENSION = int(os.getenv("PDF_MAX_DIMENSION", "800"))  # Default 800 for CPU
+
+# Max pages: Limit number of pages to process (0 = no limit)
+# For long PDFs, processing only first N pages can dramatically speed up extraction
+PDF_MAX_PAGES = int(os.getenv("PDF_MAX_PAGES", "0"))  # Default: no limit
 
 # Quantization settings to reduce memory usage
 # Options: "none", "4bit", "8bit"
@@ -67,16 +88,23 @@ LOW_CPU_MEM_USAGE = os.getenv("LOW_CPU_MEM_USAGE", "true").lower() == "true"
 
 # CPU-specific settings
 # Number of threads for PyTorch CPU operations
-CPU_THREADS = int(os.getenv("CPU_THREADS", "0"))  # 0 = auto-detect
-if CPU_THREADS > 0:
-    torch_threads = CPU_THREADS
-else:
+# Using too many threads can cause system hangs
+# Recommended: 4 threads for 16GB RAM systems (balances speed vs responsiveness)
+CPU_THREADS = int(os.getenv("CPU_THREADS", "4"))  # Default: 4 (not auto-detect)
+if CPU_THREADS == 0:
     import multiprocessing
-    # Use half of available cores for inference, leave rest for OS
+    # If explicitly set to 0, use half of available cores
     torch_threads = max(1, multiprocessing.cpu_count() // 2)
+else:
+    torch_threads = CPU_THREADS
 
 os.environ["OMP_NUM_THREADS"] = str(torch_threads)
 os.environ["MKL_NUM_THREADS"] = str(torch_threads)
+
+# Additional CPU optimization: enable memory-efficient settings
+# These help prevent system hangs during inference
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"  # Fallback for Apple Silicon
+os.environ["TOKENIZERS_PARALLELISM"] = "false"  # Avoid tokenizer threading issues
 
 # Generation parameters for Vision-Language model
 VL_GENERATION_CONFIG = {
