@@ -59,7 +59,7 @@ MODEL_NAME = os.getenv("MODEL_NAME", DEFAULT_MODEL)
 # MAX_NEW_TOKENS controls how much text the model generates
 # Lower values = faster processing, higher values = more complete responses
 # For CPU: 2048-4096 is recommended (faster), for GPU: 8192+ is fine
-MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "8192"))  # Reduced for CPU speed
+MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "4096"))  # Reduced for CPU speed
 USE_FLASH_ATTENTION = os.getenv("USE_FLASH_ATTENTION", "false").lower() == "true"
 
 # =============================================================================
@@ -69,7 +69,7 @@ USE_FLASH_ATTENTION = os.getenv("USE_FLASH_ATTENTION", "false").lower() == "true
 
 # PDF Image Processing - Lower values = faster but potentially less accurate
 # DPI: 72=fast/low quality, 100=balanced, 150=high quality/slow
-PDF_DPI = int(os.getenv("PDF_DPI", "150"))  # Default 100 for CPU (was 150)
+PDF_DPI = int(os.getenv("PDF_DPI", "100"))  # Default 100 for CPU (was 150)
 
 # Max dimension: Resize images so longest side doesn't exceed this
 # 640=very fast, 800=fast, 1024=balanced, 2048=high quality/slow
@@ -94,7 +94,7 @@ LOW_CPU_MEM_USAGE = os.getenv("LOW_CPU_MEM_USAGE", "true").lower() == "true"
 # Number of threads for PyTorch CPU operations
 # Using too many threads can cause system hangs
 # Recommended: 4 threads for 16GB RAM systems (balances speed vs responsiveness)
-CPU_THREADS = int(os.getenv("CPU_THREADS", "6"))  # Default: 4 (not auto-detect)
+CPU_THREADS = int(os.getenv("CPU_THREADS", "5"))  # Default: 4 (not auto-detect)
 if CPU_THREADS == 0:
     import multiprocessing
     # If explicitly set to 0, use half of available cores
