@@ -17,8 +17,12 @@ OUTPUT_FOLDER.mkdir(exist_ok=True)
 # Temp directory for model loading and large file operations
 # Set to D: drive to avoid filling C: drive SSD
 # This affects Hugging Face cache and PyTorch temp files
-TEMP_DIR = os.getenv("TEMP_DIR", "D:\\temp\\pdf_extraction")
-HF_CACHE_DIR = os.getenv("HF_HOME", "D:\\huggingface_cache")
+#if windows
+# TEMP_DIR = os.getenv("TEMP_DIR", "D:\\temp\\pdf_extraction")
+# HF_CACHE_DIR = os.getenv("HF_HOME", "D:\\huggingface_cache")
+# Temp directory for model loading and large file operations
+TEMP_DIR = os.getenv("TEMP_DIR", "/workspace/tmp/pdf_extraction")
+HF_CACHE_DIR = os.getenv("HF_HOME", "/workspace/hf_cache")
 
 # Create temp directories if they don't exist
 Path(TEMP_DIR).mkdir(parents=True, exist_ok=True)
