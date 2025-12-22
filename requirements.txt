@@ -34,4 +34,5 @@ werkzeug>=3.0.0
 
 # Faster HuggingFace downloads (3-5x speedup)
 hf_transfer>=0.1.4
+xlrd>=2.0.0
 
