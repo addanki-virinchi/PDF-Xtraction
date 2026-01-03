@@ -52,7 +52,7 @@ ALLOWED_EXCEL_EXTENSIONS = {'.xlsx', '.xls'}
 #   - "Qwen/Qwen2-VL-7B-Instruct"   (~15GB download, ~14-16GB RAM) - Needs 24GB+ RAM
 #   - "Qwen/Qwen2.5-VL-7B-Instruct" (~15GB download, ~14-16GB RAM) - Needs 24GB+ RAM
 #   - "Qwen/Qwen3-VL-32B-Instruct"  (~66GB download, ~17GB RAM with 4bit) - Needs GPU
-DEFAULT_MODEL = "Qwen/Qwen2-VL-7B-Instruct"  # Best for 16GB RAM CPU-only systems
+DEFAULT_MODEL = "Qwen/Qwen3-VL-8B-Instruct"  # Best for 16GB RAM CPU-only systems
 MODEL_NAME = os.getenv("MODEL_NAME", DEFAULT_MODEL)
 
 # Generation settings

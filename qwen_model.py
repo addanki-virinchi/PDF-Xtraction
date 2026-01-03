@@ -107,20 +107,34 @@ def load_model(force_reload: bool = False) -> Tuple[Any, Any]:
 
         # Determine model class based on model name
         # Qwen2-VL and Qwen2.5-VL use Qwen2VLForConditionalGeneration
-        # Qwen3-VL uses Qwen3VLForConditionalGeneration (requires git transformers)
-        is_qwen3 = "qwen3" in MODEL_NAME.lower()
+        # Qwen3-VL uses Qwen3VLForConditionalGeneration (requires recent transformers)
+        def _is_qwen3_model(model_name: str) -> bool:
+            name = model_name.lower()
+            return "qwen3-vl" in name or "qwen3vl" in name or "qwen3" in name
 
-        if is_qwen3:
+        def _import_qwen3_model_class():
             try:
                 from transformers import Qwen3VLForConditionalGeneration
-                model_class = Qwen3VLForConditionalGeneration
-                logger.info("Using Qwen3VLForConditionalGeneration")
+                return Qwen3VLForConditionalGeneration
             except ImportError:
-                raise ImportError(
-                    "Qwen3VLForConditionalGeneration not available. "
-                    "Qwen3-VL requires transformers from git main. "
-                    "Use Qwen2-VL models instead (set MODEL_NAME=Qwen/Qwen2-VL-7B-Instruct)"
-                )
+                try:
+                    from transformers.models.qwen3_vl.modeling_qwen3_vl import (
+                        Qwen3VLForConditionalGeneration
+                    )
+                    return Qwen3VLForConditionalGeneration
+                except ImportError as exc:
+                    raise ImportError(
+                        "Qwen3VLForConditionalGeneration not available. "
+                        "Qwen3-VL requires a recent transformers version (git main or newer). "
+                        "If you intended to use Qwen/Qwen3-VL-8B-Instruct, upgrade transformers. "
+                        "Otherwise use a Qwen2-VL model (e.g., MODEL_NAME=Qwen/Qwen2-VL-2B-Instruct)."
+                    ) from exc
+
+        is_qwen3 = _is_qwen3_model(MODEL_NAME)
+
+        if is_qwen3:
+            model_class = _import_qwen3_model_class()
+            logger.info("Using Qwen3VLForConditionalGeneration")
         else:
             from transformers import Qwen2VLForConditionalGeneration
             model_class = Qwen2VLForConditionalGeneration
@@ -176,7 +190,10 @@ def load_model(force_reload: bool = False) -> Tuple[Any, Any]:
         elif has_gpu:
             # GPU with full precision
             logger.info("Using GPU with full precision")
-            load_kwargs["torch_dtype"] = torch.bfloat16 if USE_FLASH_ATTENTION else "auto"
+            if is_qwen3 and "8b" in MODEL_NAME.lower():
+                load_kwargs["torch_dtype"] = torch.bfloat16
+            else:
+                load_kwargs["torch_dtype"] = torch.bfloat16 if USE_FLASH_ATTENTION else "auto"
 
         # Add flash attention if enabled (GPU only)
         if USE_FLASH_ATTENTION and has_gpu:
