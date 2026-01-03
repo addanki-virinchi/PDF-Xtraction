@@ -207,7 +207,7 @@
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 1200000); // 20 minute timeout
 
-                status.innerHTML = '<span class="spinner"></span> Extracting data... This may take several minutes on CPU.';
+                status.innerHTML = '<span class="spinner"></span> Submitting extraction job...';
 
                 const response = await fetch('/api/extract', {
                     method: 'POST',
@@ -216,11 +216,6 @@
                 });
 
                 clearTimeout(timeoutId);
-
-                // Check content type to determine response format
-                const contentType = response.headers.get('Content-Type') || '';
-                const isJson = contentType.includes('application/json');
-                const isExcel = contentType.includes('spreadsheet') || contentType.includes('octet-stream');
 
                 // Handle 503 (model loading)
                 if (response.status === 503) {
@@ -238,30 +233,41 @@
                     throw new Error(err.error || 'Extraction failed');
                 }
 
-                // Handle successful responses based on return_json checkbox
-                if (form.return_json.checked || isJson) {
-                    // JSON response requested or received
-                    const data = await response.json();
-                    if (data.error) throw new Error(data.error);
-                    status.className = 'status success';
-                    status.innerHTML = `<strong>Success!</strong><br><pre style="margin-top:10px;overflow:auto;max-height:300px">${JSON.stringify(data, null, 2)}</pre>`;
-                } else {
-                    // Binary Excel file response - trigger download
-                    const blob = await response.blob();
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    // Extract filename from Content-Disposition header or use default
-                    const disposition = response.headers.get('Content-Disposition') || '';
-                    const filenameMatch = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                    a.download = filenameMatch ? filenameMatch[1].replace(/['"]/g, '') : 'extracted_data.xlsx';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    status.className = 'status success';
-                    status.innerHTML = '<strong>Success!</strong> Your Excel file has been downloaded.';
+                // Async job flow: POST returns job info, then poll status, then fetch result
+                const job = await response.json();
+                if (job.error) throw new Error(job.error);
+
+                const baseUrl = window.location.origin;
+                const statusUrl = job.status_url;
+                const resultUrl = job.result_url;
+
+                if (!statusUrl || !resultUrl) {
+                    throw new Error('Invalid job response: missing status_url or result_url.');
                 }
+
+                status.className = 'status loading';
+                status.innerHTML = '<span class="spinner"></span> Queued...';
+
+                const pollIntervalMs = 1500;
+                await pollJobStatus(statusUrl, status, pollIntervalMs);
+
+                status.className = 'status loading';
+                status.innerHTML = '<span class="spinner"></span> Fetching result...';
+
+                const resultResponse = await fetch(resultUrl);
+                if (!resultResponse.ok) {
+                    const err = await resultResponse.json().catch(() => ({}));
+                    throw new Error(err.error || 'Failed to fetch result.');
+                }
+
+                const resultData = await resultResponse.json();
+                if (!resultData.download_url) {
+                    throw new Error('Missing download_url in result.');
+                }
+
+                status.className = 'status success';
+                status.innerHTML = '<strong>Done.</strong> Starting Excel download...';
+                window.location.href = `${baseUrl}${resultData.download_url}`;
             } catch (err) {
                 if (err.name === 'AbortError') {
                     status.className = 'status error';
@@ -274,7 +280,36 @@
                 btn.disabled = false;
             }
         }
+
+        async function pollJobStatus(statusUrl, statusEl, intervalMs) {
+            while (true) {
+                const response = await fetch(statusUrl);
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.error || 'Failed to check status.');
+                }
+
+                const data = await response.json();
+                const state = (data.status || '').toLowerCase();
+                const progressText = data.progress ? ` - ${data.progress}` : '';
+
+                if (state === 'done') {
+                    statusEl.className = 'status success';
+                    statusEl.innerHTML = '<strong>Done.</strong> Preparing download...';
+                    return;
+                }
+
+                if (state === 'error') {
+                    throw new Error(data.error || 'Extraction failed.');
+                }
+
+                const label = state === 'running' ? 'Running' : 'Queued';
+                statusEl.className = 'status loading';
+                statusEl.innerHTML = `<span class="spinner"></span> ${label}${progressText}`;
+
+                await new Promise(resolve => setTimeout(resolve, intervalMs));
+            }
+        }
     </script>
 </body>
 </html>
-

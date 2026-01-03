@@ -113,10 +113,11 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"  # Avoid tokenizer threading issu
 # Generation parameters for Vision-Language model
 VL_GENERATION_CONFIG = {
     "max_new_tokens": MAX_NEW_TOKENS,
-    "do_sample": True,
-    "top_p": 0.8,
-    "top_k": 20,
-    "temperature": 0.7,
+    # Deterministic decoding for speed + stability on structured extraction.
+    "do_sample": False,
+    "top_p": 1.0,
+    "top_k": 0,
+    "temperature": 0.0,
     "repetition_penalty": 1.0,
 }
 
