@@ -122,19 +122,25 @@ def load_model(force_reload: bool = False) -> Tuple[Any, Any]:
                         Qwen3VLForConditionalGeneration
                     )
                     return Qwen3VLForConditionalGeneration
-                except ImportError as exc:
-                    raise ImportError(
-                        "Qwen3VLForConditionalGeneration not available. "
-                        "Qwen3-VL requires a recent transformers version (git main or newer). "
-                        "If you intended to use Qwen/Qwen3-VL-8B-Instruct, upgrade transformers. "
-                        "Otherwise use a Qwen2-VL model (e.g., MODEL_NAME=Qwen/Qwen2-VL-2B-Instruct)."
-                    ) from exc
+                except ImportError:
+                    return None
 
         is_qwen3 = _is_qwen3_model(MODEL_NAME)
 
+        use_auto_model = False
         if is_qwen3:
             model_class = _import_qwen3_model_class()
-            logger.info("Using Qwen3VLForConditionalGeneration")
+            if model_class is None:
+                from transformers import AutoModelForVision2Seq
+                model_class = AutoModelForVision2Seq
+                use_auto_model = True
+                logger.warning(
+                    "Qwen3VLForConditionalGeneration not available. "
+                    "Falling back to AutoModelForVision2Seq with trust_remote_code=True. "
+                    "Consider upgrading transformers for native Qwen3-VL support."
+                )
+            else:
+                logger.info("Using Qwen3VLForConditionalGeneration")
         else:
             from transformers import Qwen2VLForConditionalGeneration
             model_class = Qwen2VLForConditionalGeneration
@@ -211,6 +217,8 @@ def load_model(force_reload: bool = False) -> Tuple[Any, Any]:
         load_start = time.time()
 
         try:
+            if use_auto_model:
+                load_kwargs["trust_remote_code"] = True
             _model = model_class.from_pretrained(
                 MODEL_NAME,
                 **load_kwargs
@@ -232,7 +240,10 @@ def load_model(force_reload: bool = False) -> Tuple[Any, Any]:
         logger.info(f"Model weights loaded in {load_duration:.1f} seconds")
 
         _loading_status["progress"] = "Loading processor..."
-        _processor = AutoProcessor.from_pretrained(MODEL_NAME)
+        processor_kwargs = {}
+        if use_auto_model:
+            processor_kwargs["trust_remote_code"] = True
+        _processor = AutoProcessor.from_pretrained(MODEL_NAME, **processor_kwargs)
 
         with _loading_lock:
             _loading_status["state"] = "ready"
