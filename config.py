@@ -48,18 +48,20 @@ ALLOWED_EXCEL_EXTENSIONS = {'.xlsx', '.xls'}
 
 # Model configuration
 # Available Qwen VL models (set via MODEL_NAME environment variable):
-#   - "Qwen/Qwen2-VL-2B-Instruct"   (~4.5GB download, ~5-6GB RAM) - Best for 16GB RAM
-#   - "Qwen/Qwen2-VL-7B-Instruct"   (~15GB download, ~14-16GB RAM) - Needs 24GB+ RAM
-#   - "Qwen/Qwen2.5-VL-7B-Instruct" (~15GB download, ~14-16GB RAM) - Needs 24GB+ RAM
-#   - "Qwen/Qwen3-VL-32B-Instruct"  (~66GB download, ~17GB RAM with 4bit) - Needs GPU
-DEFAULT_MODEL = "Qwen/Qwen3-VL-8B-Instruct"  # Best for 16GB RAM CPU-only systems
+#   - "Qwen/Qwen2-VL-2B-Instruct"    (~4.5GB download, ~5-6GB RAM) - Best for 16GB RAM
+#   - "Qwen/Qwen2.5-VL-3B-Instruct"  (~7.5GB download, ~8-10GB RAM) - Faster than 7B
+#   - "Qwen/Qwen3-VL-4B-Instruct"    (~9-10GB download, ~10-12GB RAM) - Balanced speed/quality
+#   - "Qwen/Qwen2-VL-7B-Instruct"    (~15GB download, ~14-16GB RAM) - Needs 24GB+ RAM
+#   - "Qwen/Qwen2.5-VL-7B-Instruct"  (~15GB download, ~14-16GB RAM) - Needs 24GB+ RAM
+#   - "Qwen/Qwen3-VL-32B-Instruct"   (~66GB download, ~17GB RAM with 4bit) - Needs GPU
+DEFAULT_MODEL = "Qwen/Qwen3-VL-4B-Instruct"  # Balanced default for multi-page PDFs
 MODEL_NAME = os.getenv("MODEL_NAME", DEFAULT_MODEL)
 
 # Generation settings
 # MAX_NEW_TOKENS controls how much text the model generates
 # Lower values = faster processing, higher values = more complete responses
 # For CPU: 2048-4096 is recommended (faster), for GPU: 8192+ is fine
-MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "4096"))  # Reduced for CPU speed
+MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "3072"))  # Lower default for faster 3B inference
 USE_FLASH_ATTENTION = os.getenv("USE_FLASH_ATTENTION", "false").lower() == "true"
 
 # =============================================================================

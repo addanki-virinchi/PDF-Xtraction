@@ -85,7 +85,7 @@ All settings can be configured via environment variables. Here are the available
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `MODEL_NAME` | `Qwen/Qwen2-VL-2B-Instruct` | Hugging Face model ID |
+| `MODEL_NAME` | `Qwen/Qwen3-VL-4B-Instruct` | Hugging Face model ID |
 | `MAX_NEW_TOKENS` | `2048` | Maximum tokens to generate (lower = faster) |
 | `USE_FLASH_ATTENTION` | `false` | Enable Flash Attention 2 (GPU only) |
 | `QUANTIZATION_MODE` | `none` | Quantization: `none`, `4bit`, `8bit` (GPU only) |
@@ -172,7 +172,7 @@ To avoid download delays on first run, pre-download the model using the provided
 .\venv\Scripts\Activate  # Windows
 source venv/bin/activate  # Linux/macOS
 
-# Download default model (Qwen2-VL-2B-Instruct)
+# Download default model (Qwen3-VL-4B-Instruct)
 python download_model.py
 
 # Download a specific model
