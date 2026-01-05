@@ -1,9 +1,75 @@
-FLASK] 2026-01-03 18:10:50,418 - qwen_model - INFO - Generation took 459.6s (140 tokens, 0.3 tokens/sec)
-[FLASK] 2026-01-03 18:10:50,742 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 18:10:50] "GET /api/status/4fe79be4-08ea-4bb6-9ade-ab80f5b4caf6 HTTP/1.1" 200 -
-[FLASK] 2026-01-03 18:10:50,742 - qwen_model - INFO - Total inference time: 460.4s
-[FLASK] 2026-01-03 18:10:50,743 - __main__ - INFO - [4fe79be4-08ea-4bb6-9ade-ab80f5b4caf6] Model response length: 400
-[FLASK] 2026-01-03 18:10:50,743 - excel_handler - INFO - Parsed 1 rows from model response
-[FLASK] 2026-01-03 18:10:50,764 - __main__ - INFO - [4fe79be4-08ea-4bb6-9ade-ab80f5b4caf6] Completed successfully. Output: PDF MODEL (1)_extracted_20260103_181050.xlsx
-[FLASK] 2026-01-03 18:10:53,163 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 18:10:53] "GET /api/status/4fe79be4-08ea-4bb6-9ade-ab80f5b4caf6 HTTP/1.1" 200 -
-[FLASK] 2026-01-03 18:10:53,258 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 18:10:53] "GET /api/result/4fe79be4-08ea-4bb6-9ade-ab80f5b4caf6 HTTP/1.1" 200 -
-[FLASK] 2026-01-03 18:10:53,595 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 18:10:53] "GET /api/download/PDF%20MODEL%20(1)_extracted_20260103_181050.xlsx HTTP/1.1" 404 -
+[FLASK] 2026-01-05 08:14:12,903 - qwen_model - INFO - Using Qwen3VLForConditionalGeneration
+[FLASK] 2026-01-05 08:14:12,903 - qwen_model - INFO - GPU available: True
+[FLASK] 2026-01-05 08:14:12,903 - qwen_model - INFO - GPU: NVIDIA A100-SXM4-80GB (79.3 GB)
+[FLASK] 2026-01-05 08:14:12,903 - qwen_model - INFO - Using GPU with full precision
+[FLASK] 2026-01-05 08:14:12,903 - qwen_model - WARNING - Flash Attention 2 requested but flash_attn is not installed. Falling back to sdpa attention.
+[FLASK] 2026-01-05 08:14:12,903 - qwen_model - INFO - Starting model download/loading - this may take several minutes
+[FLASK] `torch_dtype` is deprecated! Use `dtype` instead!
+[FLASK] 2026-01-05 08:14:31,338 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:31] "GET / HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:14:31,751 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:31] "GET /api/model-status HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:14:31,826 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:31] "GET /favicon.ico HTTP/1.1" 404 -
+[FLASK] 2026-01-05 08:14:37,709 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:37] "GET /api/model-status HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:14:41,758 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:41] "GET /api/model-status HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:14:47,972 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:47] "GET /api/model-status HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:14:52,683 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:52] "GET /api/model-status HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:14:55,359 - accelerate.utils.modeling - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
+[FLASK] 
+[FLASK] Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]
+[FLASK] Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:04,  1.45s/it]2026-01-05 08:14:57,690 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:57] "GET /api/model-status HTTP/1.1" 200 -
+[FLASK] 
+[FLASK] Loading checkpoint shards:  50%|█████     | 2/4 [00:02<00:02,  1.44s/it]
+[FLASK] Loading checkpoint shards:  75%|███████▌  | 3/4 [00:04<00:01,  1.46s/it]
+[FLASK] Loading checkpoint shards: 100%|██████████| 4/4 [00:05<00:00,  1.22s/it]
+[FLASK] Loading checkpoint shards: 100%|██████████| 4/4 [00:05<00:00,  1.31s/it]
+[FLASK] 2026-01-05 08:15:00,911 - qwen_model - INFO - Model weights loaded in 48.0 seconds
+[FLASK] 2026-01-05 08:15:02,707 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:15:02] "GET /api/model-status HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:15:03,806 - qwen_model - INFO - Model loaded successfully in 60.2 seconds
+[FLASK] 2026-01-05 08:15:03,806 - qwen_model - INFO - GPU 0: 16.34GB allocated, 16.37GB reserved
+[FLASK] 2026-01-05 08:15:07,686 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:15:07] "GET /api/model-status HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:17:45,008 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:45] "GET /api/model-status HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:17:45,605 - __main__ - INFO - [519cf79c-f754-42a4-a3e2-657b1adbc6eb] Queued: PDF=2aacc35b_PDF_MODEL_1.pdf, Template=2aacc35b_SAP_UPLOAD_TEMPLATE.xlsx
+[FLASK] 2026-01-05 08:17:45,606 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:45] "POST /api/extract HTTP/1.1" 202 -
+[FLASK] 2026-01-05 08:17:45,624 - __main__ - INFO - [519cf79c-f754-42a4-a3e2-657b1adbc6eb] Fields to extract: ['Sold-to', 'Ship-to', 'Mark for', 'PO Number', 'Ship date', 'Req category', 'Final Pc9', 'Waist(X)', 'Inseam(Y)', 'Qty', 'message', 'Shipping cond', 'Cancel date', 'Plant', 'Plant_1', 'No of cartons', 'Bill to party', 'Department', 'Valid from']
+[FLASK] 2026-01-05 08:17:45,818 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:45] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:17:47,707 - qwen_model - INFO - Starting inference with max_new_tokens=8192
+[FLASK] 2026-01-05 08:17:47,707 - qwen_model - INFO - Processing 0 images
+[FLASK] 2026-01-05 08:17:47,734 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:47] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:17:47,768 - qwen_model - INFO - Input tokens: 15984
+[FLASK] 2026-01-05 08:17:47,768 - qwen_model - INFO - Starting model generation (this may take several minutes on CPU)...
+[FLASK] The following generation flags are not valid and may be ignored: ['temperature', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+[FLASK] 2026-01-05 08:17:49,473 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:49] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:17:51,682 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:51] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:17:53,676 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:53] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:17:55,669 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:55] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:17:57,694 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:57] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:17:58,359 - qwen_model - INFO - Generation took 10.6s (175 tokens, 16.5 tokens/sec)
+[FLASK] 2026-01-05 08:17:58,693 - qwen_model - INFO - Total inference time: 11.0s
+[FLASK] 2026-01-05 08:17:58,693 - __main__ - INFO - [519cf79c-f754-42a4-a3e2-657b1adbc6eb] Model response length: 427
+[FLASK] 2026-01-05 08:17:58,693 - excel_handler - INFO - Parsed 1 rows from model response
+[FLASK] 2026-01-05 08:17:58,714 - __main__ - INFO - [519cf79c-f754-42a4-a3e2-657b1adbc6eb] Completed successfully. Output: PDF_MODEL_1_extracted_20260105_081758.xlsx
+[FLASK] 2026-01-05 08:17:59,695 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:59] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:17:59,955 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:59] "GET /api/result/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:18:00,333 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:18:00] "GET /api/download/PDF_MODEL_1_extracted_20260105_081758.xlsx HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:18:48,679 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:18:48] "GET /api/model-status HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:18:49,309 - __main__ - INFO - [a372e02a-f38b-4e51-901a-52b33e88c358] Queued: PDF=a1d48a95_PDF_MODEL_1.pdf, Template=a1d48a95_SAP_UPLOAD_TEMPLATE.xlsx
+[FLASK] 2026-01-05 08:18:49,310 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:18:49] "POST /api/extract HTTP/1.1" 202 -
+[FLASK] 2026-01-05 08:18:49,320 - __main__ - INFO - [a372e02a-f38b-4e51-901a-52b33e88c358] Fields to extract: ['Sold-to', 'Ship-to', 'Mark for', 'PO Number', 'Ship date', 'Req category', 'Final Pc9', 'Waist(X)', 'Inseam(Y)', 'Qty', 'message', 'Shipping cond', 'Cancel date', 'Plant', 'Plant_1', 'No of cartons', 'Bill to party', 'Department', 'Valid from']
+[FLASK] 2026-01-05 08:18:49,531 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:18:49] "GET /api/status/a372e02a-f38b-4e51-901a-52b33e88c358 HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:18:51,391 - pdf_extractor - INFO - PDF to images: DPI=150, max_dim=1280, max_pages=all
+[FLASK] 2026-01-05 08:18:51,695 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:18:51] "GET /api/status/a372e02a-f38b-4e51-901a-52b33e88c358 HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:18:51,907 - pdf_extractor - INFO - PDF has 15 pages
+[FLASK] 2026-01-05 08:18:52,715 - qwen_model - INFO - Starting inference with max_new_tokens=8192
+[FLASK] 2026-01-05 08:18:52,715 - qwen_model - INFO - Processing 15 images
+[FLASK] 2026-01-05 08:18:53,774 - qwen_model - INFO - Input tokens: 32814
+[FLASK] 2026-01-05 08:18:53,774 - qwen_model - INFO - Starting model generation (this may take several minutes on CPU)...
+
+
+[FLASK] 2026-01-05 08:30:13,482 - qwen_model - INFO - Generation took 679.7s (175 tokens, 0.3 tokens/sec)
+[FLASK] 2026-01-05 08:30:13,837 - qwen_model - INFO - Total inference time: 681.1s
+[FLASK] 2026-01-05 08:30:13,837 - __main__ - INFO - [a372e02a-f38b-4e51-901a-52b33e88c358] Model response length: 427
+[FLASK] 2026-01-05 08:30:13,837 - excel_handler - INFO - Parsed 1 rows from model response
+[FLASK] 2026-01-05 08:30:13,839 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:30:13] "GET /api/status/a372e02a-f38b-4e51-901a-52b33e88c358 HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:30:13,857 - __main__ - INFO - [a372e02a-f38b-4e51-901a-52b33e88c358] Completed successfully. Output: PDF_MODEL_1_extracted_20260105_083013.xlsx
+[FLASK] 2026-01-05 08:30:15,760 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:30:15] "GET /api/status/a372e02a-f38b-4e51-901a-52b33e88c358 HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:30:16,173 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:30:16] "GET /api/result/a372e02a-f38b-4e51-901a-52b33e88c358 HTTP/1.1" 200 -
+[FLASK] 2026-01-05 08:30:16,778 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:30:16] "GET /api/download/PDF_MODEL_1_extracted_20260105_083013.xlsx HTTP/1.1" 200 -

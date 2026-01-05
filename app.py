@@ -183,6 +183,7 @@ def job_result(job_id):
             "fields": job.get("fields"),
             "extracted_data": job.get("extracted_data"),
             "download_url": job.get("download_url"),
+            "return_json": job.get("return_json", False),
         })
     if status == "error":
         return jsonify({
@@ -210,7 +211,7 @@ def download_file(filename):
 # Worker: heavy extraction work runs in background so requests don't timeout
 # -----------------------------------------------------------------------------
 def _extract_worker(job_id: str, pdf_path: str, excel_path: str, original_pdf_name: str,
-                    custom_prompt: str | None, use_vision: bool):
+                    custom_prompt: str | None, use_vision: bool, return_json: bool):
     try:
         _set_job(job_id, status="running", progress="Starting extraction...")
 
@@ -248,11 +249,16 @@ def _extract_worker(job_id: str, pdf_path: str, excel_path: str, original_pdf_na
         _set_job(job_id, progress="Parsing model response...")
         extracted_rows = parse_model_response_to_rows(response, fields)
 
-        # Create output Excel
-        _set_job(job_id, progress="Writing output Excel...")
-        output_filename = generate_output_filename(original_pdf_name)
-        output_path = Path(app.config['OUTPUT_FOLDER']) / output_filename
-        create_output_excel(Path(excel_path), output_path, extracted_rows)
+        output_filename = None
+        output_path = None
+        download_url = None
+        if not return_json:
+            # Create output Excel
+            _set_job(job_id, progress="Writing output Excel...")
+            output_filename = generate_output_filename(original_pdf_name)
+            output_path = Path(app.config['OUTPUT_FOLDER']) / output_filename
+            create_output_excel(Path(excel_path), output_path, extracted_rows)
+            download_url = f"/api/download/{output_filename}"
 
         # Cleanup uploaded files (keep output)
         _set_job(job_id, progress="Cleaning up temporary files...")
@@ -265,8 +271,9 @@ def _extract_worker(job_id: str, pdf_path: str, excel_path: str, original_pdf_na
             progress="Done",
             extracted_data=extracted_rows,
             output_filename=output_filename,
-            output_path=str(output_path),
-            download_url=f"/api/download/{output_filename}"
+            output_path=str(output_path) if output_path else None,
+            download_url=download_url,
+            return_json=return_json,
         )
 
         logger.info(f"[{job_id}] Completed successfully. Output: {output_filename}")
@@ -343,6 +350,7 @@ def extract_data():
     # Optional parameters
     custom_prompt = request.form.get('custom_prompt', '').strip() or None
     use_vision = request.form.get('use_vision', 'true').lower() == 'true'
+    return_json = request.form.get('return_json', 'false').lower() == 'true'
 
     # Save uploaded files
     session_id = str(uuid.uuid4())[:8]
@@ -364,7 +372,8 @@ def extract_data():
         progress="Queued",
         created_at=_now_ts(),
         pdf_filename=pdf_filename,
-        excel_filename=excel_filename
+        excel_filename=excel_filename,
+        return_json=return_json
     )
 
     logger.info(f"[{job_id}] Queued: PDF={pdf_filename}, Template={excel_filename}")
@@ -372,7 +381,7 @@ def extract_data():
     # Start background worker
     t = threading.Thread(
         target=_extract_worker,
-        args=(job_id, str(pdf_path), str(excel_path), pdf_file.filename, custom_prompt, use_vision),
+        args=(job_id, str(pdf_path), str(excel_path), pdf_file.filename, custom_prompt, use_vision, return_json),
         daemon=True
     )
     t.start()

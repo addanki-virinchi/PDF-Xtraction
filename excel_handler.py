@@ -1,6 +1,7 @@
 """Excel template handling module."""
 
 import json
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -59,9 +60,16 @@ def create_output_excel(
     headers = template_df.columns.tolist()
     
     # Create DataFrame from extracted data, aligning with template columns
+    def _normalize_key(value: str) -> str:
+        return re.sub(r"[^a-z0-9]+", "", value.lower())
+
     output_data = []
     for row_data in extracted_data:
         aligned_row = {}
+        normalized_row_keys = {
+            _normalize_key(k): k for k in row_data.keys()
+            if isinstance(k, str)
+        }
         for header in headers:
             # Try exact match first, then case-insensitive
             value = row_data.get(header)
@@ -71,6 +79,12 @@ def create_output_excel(
                     if key.lower() == header.lower():
                         value = row_data[key]
                         break
+            if value is None:
+                # Fallback to normalized key matching (e.g., Sold-to vs Sold_to)
+                normalized_header = _normalize_key(header)
+                matched_key = normalized_row_keys.get(normalized_header)
+                if matched_key is not None:
+                    value = row_data.get(matched_key)
             aligned_row[header] = value if value is not None else ""
         output_data.append(aligned_row)
     
@@ -138,7 +152,13 @@ def parse_model_response_to_rows(
             except json.JSONDecodeError:
                 pass
 
-        # If JSON parsing fails, return raw response
+        # Try simple key:value parsing as a fallback
+        parsed_kv = _parse_key_value_lines(original_response)
+        if parsed_kv:
+            logger.warning("Parsed response using key:value fallback")
+            return [parsed_kv]
+
+        # If parsing fails, return raw response
         logger.warning("Could not parse response as JSON, returning raw")
         return [{"raw_response": original_response}]
 
@@ -158,6 +178,20 @@ def _extract_json_from_text(text: str) -> Optional[str]:
         return obj_match.group()
 
     return None
+
+
+def _parse_key_value_lines(text: str) -> Dict[str, Any]:
+    """Parse simple 'Key: Value' lines into a dict."""
+    rows = {}
+    for line in text.splitlines():
+        if ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        key = key.strip()
+        value = value.strip()
+        if key:
+            rows[key] = value
+    return rows
 
 
 def _normalize_parsed_data(parsed: Any, headers: List[str]) -> List[Dict[str, Any]]:
@@ -238,4 +272,3 @@ def _normalize_parsed_data(parsed: Any, headers: List[str]) -> List[Dict[str, An
 
     # Other types - wrap in a dict
     return [{"raw_value": str(parsed)}]
-

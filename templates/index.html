@@ -198,10 +198,10 @@
                 return;
             }
 
-            await submitExtraction(form, formData, btn, status);
+            await submitExtraction(form, formData, btn, status, form.return_json.checked);
         });
 
-        async function submitExtraction(form, formData, btn, status) {
+        async function submitExtraction(form, formData, btn, status, returnJson) {
             try {
                 // Use AbortController for timeout (20 minutes for CPU inference)
                 const controller = new AbortController();
@@ -261,6 +261,13 @@
                 }
 
                 const resultData = await resultResponse.json();
+                if (returnJson) {
+                    status.className = 'status success';
+                    const payload = JSON.stringify(resultData.extracted_data || [], null, 2);
+                    status.innerHTML = `<strong>Done.</strong> JSON output below:<pre style="margin-top:10px;white-space:pre-wrap;word-break:break-word;">${payload}</pre>`;
+                    return;
+                }
+
                 if (!resultData.download_url) {
                     throw new Error('Missing download_url in result.');
                 }
