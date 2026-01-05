@@ -55,7 +55,7 @@ ALLOWED_EXCEL_EXTENSIONS = {'.xlsx', '.xls','.csv'}
 #   - "Qwen/Qwen2-VL-7B-Instruct"    (~15GB download, ~14-16GB RAM) - Needs 24GB+ RAM
 #   - "Qwen/Qwen2.5-VL-7B-Instruct"  (~15GB download, ~14-16GB RAM) - Needs 24GB+ RAM
 #   - "Qwen/Qwen3-VL-32B-Instruct"   (~66GB download, ~17GB RAM with 4bit) - Needs GPU
-DEFAULT_MODEL = "Qwen/Qwen3-VL-4B-Instruct"  # Balanced default for multi-page PDFs
+DEFAULT_MODEL = "Qwen/Qwen3-VL-8B-Instruct"  # GPU-optimized default for higher accuracy
 MODEL_NAME = os.getenv("MODEL_NAME", DEFAULT_MODEL)
 
 # Model-specific defaults (overridden by explicit environment variables)
@@ -67,7 +67,7 @@ MODEL_PROFILES = {
         "quantization_mode": "none",
     },
     "Qwen/Qwen3-VL-4B-Instruct": {
-        "max_new_tokens": 4096,
+        "max_new_tokens": 8192,
         "dtype": "bfloat16",
         "use_flash_attention": True,
         "quantization_mode": "none",
@@ -97,10 +97,10 @@ MODEL_PROFILE = MODEL_PROFILES.get(MODEL_NAME, {})
 # MAX_NEW_TOKENS controls how much text the model generates
 # Lower values = faster processing, higher values = more complete responses
 # For CPU: 2048-4096 is recommended (faster), for GPU: 8192+ is fine
-MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", str(MODEL_PROFILE.get("max_new_tokens", 3072))))
+MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", str(MODEL_PROFILE.get("max_new_tokens", 8192))))
 USE_FLASH_ATTENTION = os.getenv(
     "USE_FLASH_ATTENTION",
-    "true" if MODEL_PROFILE.get("use_flash_attention") else "false"
+    "true"
 ).lower() == "true"
 
 # =============================================================================
@@ -110,11 +110,11 @@ USE_FLASH_ATTENTION = os.getenv(
 
 # PDF Image Processing - Lower values = faster but potentially less accurate
 # DPI: 72=fast/low quality, 100=balanced, 150=high quality/slow
-PDF_DPI = int(os.getenv("PDF_DPI", "150"))  # Default 100 for CPU (was 150)
+PDF_DPI = int(os.getenv("PDF_DPI", "150"))  # GPU-optimized default
 
 # Max dimension: Resize images so longest side doesn't exceed this
 # 640=very fast, 800=fast, 1024=balanced, 2048=high quality/slow
-PDF_MAX_DIMENSION = int(os.getenv("PDF_MAX_DIMENSION", "1024"))  # Default 800 for CPU
+PDF_MAX_DIMENSION = int(os.getenv("PDF_MAX_DIMENSION", "1280"))  # GPU-optimized default
 
 # Max pages: Limit number of pages to process (0 = no limit)
 # For long PDFs, processing only first N pages can dramatically speed up extraction
