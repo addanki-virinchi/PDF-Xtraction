@@ -325,11 +325,24 @@ def extract_with_vision(
     # Prepare inputs
     logger.debug("Preparing inputs...")
     prep_start = time.time()
-    inputs = processor.apply_chat_template(
+    try:
+        from qwen_vl_utils import process_vision_info
+    except Exception as exc:
+        raise RuntimeError(
+            "qwen-vl-utils is required for vision input processing. "
+            "Please install/upgrade it and retry."
+        ) from exc
+
+    prompt_text = processor.apply_chat_template(
         messages,
-        tokenize=True,
-        add_generation_prompt=True,
-        return_dict=True,
+        tokenize=False,
+        add_generation_prompt=True
+    )
+    image_inputs, video_inputs = process_vision_info(messages)
+    inputs = processor(
+        text=[prompt_text],
+        images=image_inputs if image_inputs else None,
+        videos=video_inputs if video_inputs else None,
         return_tensors="pt"
     )
     inputs = inputs.to(model.device)

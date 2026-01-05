@@ -3,17 +3,12 @@
 from typing import List, Optional
 
 
-DEFAULT_SYSTEM_PROMPT = """You are an expert data extraction assistant. Your task is to carefully analyze documents and extract specific information based on the requested fields.
-
-Key Instructions:
-1. Extract ONLY the information that matches the requested fields
-2. Return data in valid JSON format
-3. If a field value is not found in the document, use null
-4. If multiple records/rows exist (e.g., line items in an invoice), return an array of objects
-5. Preserve the exact field names as provided
-6. Be precise and accurate - do not hallucinate or guess values
-7. For dates, use ISO format (YYYY-MM-DD) when possible
-8. For numbers, extract numeric values without currency symbols unless the field specifically asks for formatted values"""
+DEFAULT_SYSTEM_PROMPT = (
+    "You are an expert data extraction assistant. Extract only the requested fields. "
+    "Return valid JSON only (no markdown, no commentary). "
+    "If a value is not found, use null. If multiple records exist, return an array. "
+    "Preserve exact field names. Use ISO dates (YYYY-MM-DD) when possible."
+)
 
 
 def build_extraction_prompt(
@@ -71,9 +66,8 @@ def build_extraction_prompt(
     
     # Add output format reminder
     prompt_parts.extend([
-        "Respond with ONLY valid JSON. Example format:",
-        '{"field1": "value1", "field2": "value2"} or',
-        '[{"field1": "value1"}, {"field1": "value2"}] for multiple records'
+        "Respond with ONLY valid JSON.",
+        "Do not include markdown fences or extra text."
     ])
     
     return "\n".join(prompt_parts)
@@ -177,4 +171,3 @@ def build_text_only_messages(
     ]
 
     return messages
-
