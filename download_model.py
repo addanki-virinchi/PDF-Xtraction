@@ -34,16 +34,19 @@ print()
 def get_model_class(model_name: str):
     """Get the appropriate model class based on model name."""
     model_lower = model_name.lower()
-    
+
     if "qwen3" in model_lower:
-        from transformers import Qwen3VLForConditionalGeneration
-        return Qwen3VLForConditionalGeneration
-    elif "qwen2.5" in model_lower or "qwen2_5" in model_lower:
+        try:
+            from transformers import Qwen3VLForConditionalGeneration
+            return Qwen3VLForConditionalGeneration
+        except ImportError:
+            from transformers import AutoModelForVision2Seq
+            return AutoModelForVision2Seq
+    if "qwen2.5" in model_lower or "qwen2_5" in model_lower:
         from transformers import Qwen2_5_VLForConditionalGeneration
         return Qwen2_5_VLForConditionalGeneration
-    else:
-        from transformers import Qwen2VLForConditionalGeneration
-        return Qwen2VLForConditionalGeneration
+    from transformers import Qwen2VLForConditionalGeneration
+    return Qwen2VLForConditionalGeneration
 
 
 def download_model(model_name: str, verify_only: bool = False):
@@ -161,4 +164,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

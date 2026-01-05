@@ -44,25 +44,64 @@ os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = os.getenv("HF_HUB_ENABLE_HF_TRANSFER",
 
 # Allowed file extensions
 ALLOWED_PDF_EXTENSIONS = {'.pdf'}
-ALLOWED_EXCEL_EXTENSIONS = {'.xlsx', '.xls'}
+ALLOWED_EXCEL_EXTENSIONS = {'.xlsx', '.xls','.csv'}
 
 # Model configuration
 # Available Qwen VL models (set via MODEL_NAME environment variable):
 #   - "Qwen/Qwen2-VL-2B-Instruct"    (~4.5GB download, ~5-6GB RAM) - Best for 16GB RAM
 #   - "Qwen/Qwen2.5-VL-3B-Instruct"  (~7.5GB download, ~8-10GB RAM) - Faster than 7B
 #   - "Qwen/Qwen3-VL-4B-Instruct"    (~9-10GB download, ~10-12GB RAM) - Balanced speed/quality
+#   - "Qwen/Qwen3-VL-8B-Instruct"    (~16GB download, ~16-20GB RAM) - GPU recommended
 #   - "Qwen/Qwen2-VL-7B-Instruct"    (~15GB download, ~14-16GB RAM) - Needs 24GB+ RAM
 #   - "Qwen/Qwen2.5-VL-7B-Instruct"  (~15GB download, ~14-16GB RAM) - Needs 24GB+ RAM
 #   - "Qwen/Qwen3-VL-32B-Instruct"   (~66GB download, ~17GB RAM with 4bit) - Needs GPU
 DEFAULT_MODEL = "Qwen/Qwen3-VL-4B-Instruct"  # Balanced default for multi-page PDFs
 MODEL_NAME = os.getenv("MODEL_NAME", DEFAULT_MODEL)
 
+# Model-specific defaults (overridden by explicit environment variables)
+MODEL_PROFILES = {
+    "Qwen/Qwen3-VL-8B-Instruct": {
+        "max_new_tokens": 8192,
+        "dtype": "bfloat16",
+        "use_flash_attention": True,
+        "quantization_mode": "none",
+    },
+    "Qwen/Qwen3-VL-4B-Instruct": {
+        "max_new_tokens": 4096,
+        "dtype": "bfloat16",
+        "use_flash_attention": True,
+        "quantization_mode": "none",
+    },
+    "Qwen/Qwen2.5-VL-7B-Instruct": {
+        "max_new_tokens": 8192,
+        "dtype": "bfloat16",
+        "use_flash_attention": True,
+        "quantization_mode": "none",
+    },
+    "Qwen/Qwen2.5-VL-3B-Instruct": {
+        "max_new_tokens": 4096,
+        "dtype": "bfloat16",
+        "use_flash_attention": False,
+        "quantization_mode": "none",
+    },
+    "Qwen/Qwen2-VL-2B-Instruct": {
+        "max_new_tokens": 3072,
+        "dtype": "float32",
+        "use_flash_attention": False,
+        "quantization_mode": "none",
+    },
+}
+MODEL_PROFILE = MODEL_PROFILES.get(MODEL_NAME, {})
+
 # Generation settings
 # MAX_NEW_TOKENS controls how much text the model generates
 # Lower values = faster processing, higher values = more complete responses
 # For CPU: 2048-4096 is recommended (faster), for GPU: 8192+ is fine
-MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "3072"))  # Lower default for faster 3B inference
-USE_FLASH_ATTENTION = os.getenv("USE_FLASH_ATTENTION", "false").lower() == "true"
+MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", str(MODEL_PROFILE.get("max_new_tokens", 3072))))
+USE_FLASH_ATTENTION = os.getenv(
+    "USE_FLASH_ATTENTION",
+    "true" if MODEL_PROFILE.get("use_flash_attention") else "false"
+).lower() == "true"
 
 # =============================================================================
 # CPU Optimization Settings
@@ -71,7 +110,7 @@ USE_FLASH_ATTENTION = os.getenv("USE_FLASH_ATTENTION", "false").lower() == "true
 
 # PDF Image Processing - Lower values = faster but potentially less accurate
 # DPI: 72=fast/low quality, 100=balanced, 150=high quality/slow
-PDF_DPI = int(os.getenv("PDF_DPI", "100"))  # Default 100 for CPU (was 150)
+PDF_DPI = int(os.getenv("PDF_DPI", "150"))  # Default 100 for CPU (was 150)
 
 # Max dimension: Resize images so longest side doesn't exceed this
 # 640=very fast, 800=fast, 1024=balanced, 2048=high quality/slow
@@ -87,7 +126,10 @@ PDF_MAX_PAGES = int(os.getenv("PDF_MAX_PAGES", "0"))  # Default: no limit
 # - "8bit": ~50% memory reduction (requires bitsandbytes + GPU)
 # - "4bit": ~75% memory reduction (requires bitsandbytes + GPU)
 # Note: Quantization requires GPU - use "none" for CPU-only
-QUANTIZATION_MODE = os.getenv("QUANTIZATION_MODE", "none").lower()
+QUANTIZATION_MODE = os.getenv(
+    "QUANTIZATION_MODE",
+    MODEL_PROFILE.get("quantization_mode", "none")
+).lower()
 
 # Memory optimization settings
 LOW_CPU_MEM_USAGE = os.getenv("LOW_CPU_MEM_USAGE", "true").lower() == "true"
@@ -96,7 +138,7 @@ LOW_CPU_MEM_USAGE = os.getenv("LOW_CPU_MEM_USAGE", "true").lower() == "true"
 # Number of threads for PyTorch CPU operations
 # Using too many threads can cause system hangs
 # Recommended: 4 threads for 16GB RAM systems (balances speed vs responsiveness)
-CPU_THREADS = int(os.getenv("CPU_THREADS", "5"))  # Default: 4 (not auto-detect)
+CPU_THREADS = int(os.getenv("CPU_THREADS", "6"))  # Default: 4 (not auto-detect)
 if CPU_THREADS == 0:
     import multiprocessing
     # If explicitly set to 0, use half of available cores

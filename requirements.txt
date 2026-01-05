@@ -13,7 +13,8 @@ pandas>=2.0.0
 # QWEN Model (Vision-Language)
 torch>=2.0.0
 torchvision>=0.15.0  # Required for Qwen2-VL image/video processing
-# Qwen3-VL requires newer transformers; 4.50+ recommended for Qwen3-VL support
+# Qwen3-VL may require newer transformers; install from source if needed:
+# pip install git+https://github.com/huggingface/transformers
 transformers>=4.50.0
 accelerate>=0.25.0
 qwen-vl-utils>=0.0.8

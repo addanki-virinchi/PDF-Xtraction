@@ -6,7 +6,7 @@ An AI-powered application that extracts structured data from PDF documents using
 
 - **Vision-based extraction**: Process PDFs as images for accurate extraction from complex layouts
 - **Excel template support**: Define extraction fields using Excel column headers
-- **Multiple model support**: Choose from Qwen2-VL (2B, 7B) or Qwen2.5-VL models
+- **Multiple model support**: Choose from Qwen2-VL, Qwen2.5-VL, and Qwen3-VL models (2B to 8B+)
 - **CPU and GPU support**: Optimized for both CPU-only systems and GPU acceleration
 - **Web interface**: Simple browser-based UI for uploading files and downloading results
 - **Configurable performance**: Tune image quality, token limits, and threading for your hardware
@@ -30,6 +30,8 @@ An AI-powered application that extracts structured data from PDF documents using
 | Qwen2-VL-7B-Instruct | 14-16 GB | 16GB+ recommended | ~15 GB |
 | Qwen2.5-VL-3B-Instruct | 8-10 GB | Optional | ~7.5 GB |
 | Qwen2.5-VL-7B-Instruct | 16-17 GB | 16GB+ recommended | ~16 GB |
+| Qwen3-VL-4B-Instruct | 10-12 GB | 16GB+ recommended | ~9-10 GB |
+| Qwen3-VL-8B-Instruct | 16-20 GB | 24GB+ recommended | ~16 GB |
 
 ### Additional Requirements
 
@@ -157,6 +159,7 @@ $env:MAX_NEW_TOKENS = "4096"
 #### GPU with 16GB+ VRAM
 ```powershell
 $env:MODEL_NAME = "Qwen/Qwen2.5-VL-7B-Instruct"
+$env:MODEL_NAME = "Qwen/Qwen3-VL-8B-Instruct"
 $env:USE_FLASH_ATTENTION = "true"
 $env:PDF_DPI = "150"
 $env:PDF_MAX_DIMENSION = "1280"
@@ -177,6 +180,7 @@ python download_model.py
 
 # Download a specific model
 python download_model.py --model Qwen/Qwen2.5-VL-3B-Instruct
+python download_model.py --model Qwen/Qwen3-VL-8B-Instruct
 
 # Verify existing download only (no new downloads)
 python download_model.py --verify-only
@@ -189,6 +193,7 @@ python download_model.py --verify-only
 | Qwen2-VL-2B | ~4.5 GB | ~6 min | ~2 min |
 | Qwen2.5-VL-3B | ~7.5 GB | ~10 min | ~3 min |
 | Qwen2-VL-7B | ~15 GB | ~20 min | ~6 min |
+| Qwen3-VL-8B | ~16 GB | ~22 min | ~7 min |
 
 ## ▶️ Running the Application
 
@@ -245,6 +250,7 @@ curl http://localhost:5000/api/model-status
 | 16GB RAM, CPU | Qwen2-VL-2B | 2-4 min | 8-15 min |
 | 32GB RAM, CPU | Qwen2.5-VL-3B | 3-5 min | 10-20 min |
 | GPU 16GB VRAM | Qwen2.5-VL-7B | 15-30 sec | 1-2 min |
+| GPU 24GB+ VRAM | Qwen3-VL-8B | 20-40 sec | 2-4 min |
 
 ### Speed vs Quality Trade-offs
 
@@ -346,6 +352,7 @@ See the [RunPod SSH Setup Guide](#runpod-ssh-setup-guide) section below for depl
 1. Log in to [RunPod.io](https://runpod.io)
 2. Click **"+ Deploy"** or **"Pods"** → **"+ New Pod"**
 3. Select a GPU template:
+   - For Qwen3-VL-8B: Choose 24GB+ VRAM (A100/H100 recommended)
    - For Qwen2.5-VL-7B: Choose 24GB+ VRAM (e.g., RTX 4090, A5000)
    - For Qwen2-VL-2B: 8GB+ VRAM is sufficient
 4. Select a template:

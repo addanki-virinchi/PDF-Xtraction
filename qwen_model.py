@@ -241,7 +241,7 @@ def load_model(force_reload: bool = False) -> Tuple[Any, Any]:
 
         _loading_status["progress"] = "Loading processor..."
         processor_kwargs = {}
-        if use_auto_model:
+        if use_auto_model or is_qwen3:
             processor_kwargs["trust_remote_code"] = True
         _processor = AutoProcessor.from_pretrained(MODEL_NAME, **processor_kwargs)
 
