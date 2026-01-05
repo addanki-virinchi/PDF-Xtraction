@@ -1,0 +1,9 @@
+FLASK] 2026-01-03 18:10:50,418 - qwen_model - INFO - Generation took 459.6s (140 tokens, 0.3 tokens/sec)
+[FLASK] 2026-01-03 18:10:50,742 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 18:10:50] "GET /api/status/4fe79be4-08ea-4bb6-9ade-ab80f5b4caf6 HTTP/1.1" 200 -
+[FLASK] 2026-01-03 18:10:50,742 - qwen_model - INFO - Total inference time: 460.4s
+[FLASK] 2026-01-03 18:10:50,743 - __main__ - INFO - [4fe79be4-08ea-4bb6-9ade-ab80f5b4caf6] Model response length: 400
+[FLASK] 2026-01-03 18:10:50,743 - excel_handler - INFO - Parsed 1 rows from model response
+[FLASK] 2026-01-03 18:10:50,764 - __main__ - INFO - [4fe79be4-08ea-4bb6-9ade-ab80f5b4caf6] Completed successfully. Output: PDF MODEL (1)_extracted_20260103_181050.xlsx
+[FLASK] 2026-01-03 18:10:53,163 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 18:10:53] "GET /api/status/4fe79be4-08ea-4bb6-9ade-ab80f5b4caf6 HTTP/1.1" 200 -
+[FLASK] 2026-01-03 18:10:53,258 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 18:10:53] "GET /api/result/4fe79be4-08ea-4bb6-9ade-ab80f5b4caf6 HTTP/1.1" 200 -
+[FLASK] 2026-01-03 18:10:53,595 - werkzeug - INFO - 127.0.0.1 - - [03/Jan/2026 18:10:53] "GET /api/download/PDF%20MODEL%20(1)_extracted_20260103_181050.xlsx HTTP/1.1" 404 -

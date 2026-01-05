@@ -118,7 +118,9 @@ def allowed_file(filename: str, allowed_extensions: set) -> bool:
 def generate_output_filename(original_pdf: str) -> str:
     """Generate unique output filename."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    base_name = Path(original_pdf).stem
+    base_name = secure_filename(Path(original_pdf).stem)
+    if not base_name:
+        base_name = "output"
     return f"{base_name}_extracted_{timestamp}.xlsx"
 
 def _set_job(job_id: str, **kwargs):
