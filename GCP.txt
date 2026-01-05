@@ -1,0 +1,40 @@
+!nvidia-smi
+
+# System dependencies (PDF rendering)
+!apt-get -qq update
+!apt-get -qq install -y poppler-utils
+
+# CUDA-enabled PyTorch (match Colab CUDA version)
+!pip -q install --upgrade pip
+!pip -q install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Python dependencies (uses requirements.txt for consistency)
+!pip -q install -r requirements.txt
+
+# Optional: faster HF downloads
+!pip -q install hf_transfer
+
+# Optional: FlashAttention2 (may fail on some Colab runtimes)
+#!pip install flash-attn --no-build-isolation
+
+# Colab-specific cache/temp paths
+import os
+os.environ["HF_HOME"] = "/content/hf_cache"
+os.environ["TEMP_DIR"] = "/content/tmp/pdf_extraction"
+os.makedirs(os.environ["HF_HOME"], exist_ok=True)
+os.makedirs(os.environ["TEMP_DIR"], exist_ok=True)
+
+# Verify CUDA
+import torch
+print("CUDA Available:", torch.cuda.is_available())
+print("GPU:", torch.cuda.get_device_name(0))
+
+# Pre-download the model (uses config.py for cache paths)
+!python download_model.py
+
+# Optional: Cloudflare tunnel
+!wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+!dpkg -i cloudflared-linux-amd64.deb
+
+# Run the app
+#!python app.py

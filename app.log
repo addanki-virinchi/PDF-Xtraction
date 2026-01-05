@@ -1,75 +1,53 @@
-[FLASK] 2026-01-05 08:14:12,903 - qwen_model - INFO - Using Qwen3VLForConditionalGeneration
-[FLASK] 2026-01-05 08:14:12,903 - qwen_model - INFO - GPU available: True
-[FLASK] 2026-01-05 08:14:12,903 - qwen_model - INFO - GPU: NVIDIA A100-SXM4-80GB (79.3 GB)
-[FLASK] 2026-01-05 08:14:12,903 - qwen_model - INFO - Using GPU with full precision
-[FLASK] 2026-01-05 08:14:12,903 - qwen_model - WARNING - Flash Attention 2 requested but flash_attn is not installed. Falling back to sdpa attention.
-[FLASK] 2026-01-05 08:14:12,903 - qwen_model - INFO - Starting model download/loading - this may take several minutes
-[FLASK] `torch_dtype` is deprecated! Use `dtype` instead!
-[FLASK] 2026-01-05 08:14:31,338 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:31] "GET / HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:14:31,751 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:31] "GET /api/model-status HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:14:31,826 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:31] "GET /favicon.ico HTTP/1.1" 404 -
-[FLASK] 2026-01-05 08:14:37,709 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:37] "GET /api/model-status HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:14:41,758 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:41] "GET /api/model-status HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:14:47,972 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:47] "GET /api/model-status HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:14:52,683 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:52] "GET /api/model-status HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:14:55,359 - accelerate.utils.modeling - INFO - We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use more memory (at your own risk).
-[FLASK] 
-[FLASK] Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]
-[FLASK] Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:04,  1.45s/it]2026-01-05 08:14:57,690 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:14:57] "GET /api/model-status HTTP/1.1" 200 -
-[FLASK] 
-[FLASK] Loading checkpoint shards:  50%|█████     | 2/4 [00:02<00:02,  1.44s/it]
-[FLASK] Loading checkpoint shards:  75%|███████▌  | 3/4 [00:04<00:01,  1.46s/it]
-[FLASK] Loading checkpoint shards: 100%|██████████| 4/4 [00:05<00:00,  1.22s/it]
-[FLASK] Loading checkpoint shards: 100%|██████████| 4/4 [00:05<00:00,  1.31s/it]
-[FLASK] 2026-01-05 08:15:00,911 - qwen_model - INFO - Model weights loaded in 48.0 seconds
-[FLASK] 2026-01-05 08:15:02,707 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:15:02] "GET /api/model-status HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:15:03,806 - qwen_model - INFO - Model loaded successfully in 60.2 seconds
-[FLASK] 2026-01-05 08:15:03,806 - qwen_model - INFO - GPU 0: 16.34GB allocated, 16.37GB reserved
-[FLASK] 2026-01-05 08:15:07,686 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:15:07] "GET /api/model-status HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:17:45,008 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:45] "GET /api/model-status HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:17:45,605 - __main__ - INFO - [519cf79c-f754-42a4-a3e2-657b1adbc6eb] Queued: PDF=2aacc35b_PDF_MODEL_1.pdf, Template=2aacc35b_SAP_UPLOAD_TEMPLATE.xlsx
-[FLASK] 2026-01-05 08:17:45,606 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:45] "POST /api/extract HTTP/1.1" 202 -
-[FLASK] 2026-01-05 08:17:45,624 - __main__ - INFO - [519cf79c-f754-42a4-a3e2-657b1adbc6eb] Fields to extract: ['Sold-to', 'Ship-to', 'Mark for', 'PO Number', 'Ship date', 'Req category', 'Final Pc9', 'Waist(X)', 'Inseam(Y)', 'Qty', 'message', 'Shipping cond', 'Cancel date', 'Plant', 'Plant_1', 'No of cartons', 'Bill to party', 'Department', 'Valid from']
-[FLASK] 2026-01-05 08:17:45,818 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:45] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:17:47,707 - qwen_model - INFO - Starting inference with max_new_tokens=8192
-[FLASK] 2026-01-05 08:17:47,707 - qwen_model - INFO - Processing 0 images
-[FLASK] 2026-01-05 08:17:47,734 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:47] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:17:47,768 - qwen_model - INFO - Input tokens: 15984
-[FLASK] 2026-01-05 08:17:47,768 - qwen_model - INFO - Starting model generation (this may take several minutes on CPU)...
-[FLASK] The following generation flags are not valid and may be ignored: ['temperature', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
-[FLASK] 2026-01-05 08:17:49,473 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:49] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:17:51,682 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:51] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:17:53,676 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:53] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:17:55,669 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:55] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:17:57,694 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:57] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:17:58,359 - qwen_model - INFO - Generation took 10.6s (175 tokens, 16.5 tokens/sec)
-[FLASK] 2026-01-05 08:17:58,693 - qwen_model - INFO - Total inference time: 11.0s
-[FLASK] 2026-01-05 08:17:58,693 - __main__ - INFO - [519cf79c-f754-42a4-a3e2-657b1adbc6eb] Model response length: 427
-[FLASK] 2026-01-05 08:17:58,693 - excel_handler - INFO - Parsed 1 rows from model response
-[FLASK] 2026-01-05 08:17:58,714 - __main__ - INFO - [519cf79c-f754-42a4-a3e2-657b1adbc6eb] Completed successfully. Output: PDF_MODEL_1_extracted_20260105_081758.xlsx
-[FLASK] 2026-01-05 08:17:59,695 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:59] "GET /api/status/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:17:59,955 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:17:59] "GET /api/result/519cf79c-f754-42a4-a3e2-657b1adbc6eb HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:18:00,333 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:18:00] "GET /api/download/PDF_MODEL_1_extracted_20260105_081758.xlsx HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:18:48,679 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:18:48] "GET /api/model-status HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:18:49,309 - __main__ - INFO - [a372e02a-f38b-4e51-901a-52b33e88c358] Queued: PDF=a1d48a95_PDF_MODEL_1.pdf, Template=a1d48a95_SAP_UPLOAD_TEMPLATE.xlsx
-[FLASK] 2026-01-05 08:18:49,310 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:18:49] "POST /api/extract HTTP/1.1" 202 -
-[FLASK] 2026-01-05 08:18:49,320 - __main__ - INFO - [a372e02a-f38b-4e51-901a-52b33e88c358] Fields to extract: ['Sold-to', 'Ship-to', 'Mark for', 'PO Number', 'Ship date', 'Req category', 'Final Pc9', 'Waist(X)', 'Inseam(Y)', 'Qty', 'message', 'Shipping cond', 'Cancel date', 'Plant', 'Plant_1', 'No of cartons', 'Bill to party', 'Department', 'Valid from']
-[FLASK] 2026-01-05 08:18:49,531 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:18:49] "GET /api/status/a372e02a-f38b-4e51-901a-52b33e88c358 HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:18:51,391 - pdf_extractor - INFO - PDF to images: DPI=150, max_dim=1280, max_pages=all
-[FLASK] 2026-01-05 08:18:51,695 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:18:51] "GET /api/status/a372e02a-f38b-4e51-901a-52b33e88c358 HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:18:51,907 - pdf_extractor - INFO - PDF has 15 pages
-[FLASK] 2026-01-05 08:18:52,715 - qwen_model - INFO - Starting inference with max_new_tokens=8192
-[FLASK] 2026-01-05 08:18:52,715 - qwen_model - INFO - Processing 15 images
-[FLASK] 2026-01-05 08:18:53,774 - qwen_model - INFO - Input tokens: 32814
-[FLASK] 2026-01-05 08:18:53,774 - qwen_model - INFO - Starting model generation (this may take several minutes on CPU)...
-
-
-[FLASK] 2026-01-05 08:30:13,482 - qwen_model - INFO - Generation took 679.7s (175 tokens, 0.3 tokens/sec)
-[FLASK] 2026-01-05 08:30:13,837 - qwen_model - INFO - Total inference time: 681.1s
-[FLASK] 2026-01-05 08:30:13,837 - __main__ - INFO - [a372e02a-f38b-4e51-901a-52b33e88c358] Model response length: 427
-[FLASK] 2026-01-05 08:30:13,837 - excel_handler - INFO - Parsed 1 rows from model response
-[FLASK] 2026-01-05 08:30:13,839 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:30:13] "GET /api/status/a372e02a-f38b-4e51-901a-52b33e88c358 HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:30:13,857 - __main__ - INFO - [a372e02a-f38b-4e51-901a-52b33e88c358] Completed successfully. Output: PDF_MODEL_1_extracted_20260105_083013.xlsx
-[FLASK] 2026-01-05 08:30:15,760 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:30:15] "GET /api/status/a372e02a-f38b-4e51-901a-52b33e88c358 HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:30:16,173 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:30:16] "GET /api/result/a372e02a-f38b-4e51-901a-52b33e88c358 HTTP/1.1" 200 -
-[FLASK] 2026-01-05 08:30:16,778 - werkzeug - INFO - 127.0.0.1 - - [05/Jan/2026 08:30:16] "GET /api/download/PDF_MODEL_1_extracted_20260105_083013.xlsx HTTP/1.1" 200 -
+[FLASK] 2026-01-05 09:14:30,234 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/generation_config.json "HTTP/1.1 307 Temporary Redirect"
+[FLASK] 2026-01-05 09:14:30,243 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/generation_config.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:30,252 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/generation_config.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:30,254 - qwen_model - INFO - Model weights loaded in 70.1 seconds
+[FLASK] 2026-01-05 09:14:30,354 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+[FLASK] 2026-01-05 09:14:30,455 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+[FLASK] 2026-01-05 09:14:30,464 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:30,509 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:30,612 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+[FLASK] 2026-01-05 09:14:30,715 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+[FLASK] 2026-01-05 09:14:30,723 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:31,001 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen3-VL-8B-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+[FLASK] 2026-01-05 09:14:31,100 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+[FLASK] 2026-01-05 09:14:31,200 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/chat_template.json "HTTP/1.1 307 Temporary Redirect"
+[FLASK] 2026-01-05 09:14:31,208 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/chat_template.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:31,218 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/chat_template.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:31,318 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/chat_template.jinja "HTTP/1.1 404 Not Found"
+[FLASK] 2026-01-05 09:14:31,419 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/audio_tokenizer_config.json "HTTP/1.1 404 Not Found"
+[FLASK] 2026-01-05 09:14:31,524 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+[FLASK] 2026-01-05 09:14:31,622 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+[FLASK] 2026-01-05 09:14:31,630 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:31,743 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+[FLASK] 2026-01-05 09:14:31,843 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+[FLASK] 2026-01-05 09:14:31,850 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:32,165 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+[FLASK] 2026-01-05 09:14:32,174 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer_config.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:32,183 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer_config.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:32,288 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen3-VL-8B-Instruct/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+[FLASK] 2026-01-05 09:14:32,394 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen3-VL-8B-Instruct/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:32,501 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/vocab.json "HTTP/1.1 307 Temporary Redirect"
+[FLASK] 2026-01-05 09:14:32,509 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/vocab.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:32,519 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/vocab.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:32,661 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/merges.txt "HTTP/1.1 307 Temporary Redirect"
+[FLASK] 2026-01-05 09:14:32,669 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/merges.txt "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:32,679 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/merges.txt "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:32,793 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/tokenizer.json "HTTP/1.1 307 Temporary Redirect"
+[FLASK] 2026-01-05 09:14:32,801 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:32,811 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/tokenizer.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:32,960 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/added_tokens.json "HTTP/1.1 404 Not Found"
+[FLASK] 2026-01-05 09:14:33,063 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/special_tokens_map.json "HTTP/1.1 404 Not Found"
+[FLASK] 2026-01-05 09:14:33,974 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/models/Qwen/Qwen3-VL-8B-Instruct "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:34,076 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+[FLASK] 2026-01-05 09:14:34,174 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+[FLASK] 2026-01-05 09:14:34,182 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:34,191 - httpx - INFO - HTTP Request: GET https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:34,288 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+[FLASK] 2026-01-05 09:14:34,296 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:34,401 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+[FLASK] 2026-01-05 09:14:34,639 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/video_preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+[FLASK] 2026-01-05 09:14:34,648 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/video_preprocessor_config.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:34,746 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct/resolve/main/preprocessor_config.json "HTTP/1.1 307 Temporary Redirect"
+[FLASK] 2026-01-05 09:14:34,753 - httpx - INFO - HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/Qwen/Qwen3-VL-8B-Instruct/0c351dd01ed87e9c1b53cbc748cba10e6187ff3b/preprocessor_config.json "HTTP/1.1 200 OK"
+[FLASK] 2026-01-05 09:14:35,649 - qwen_model - INFO - Model loaded successfully in 80.6 seconds

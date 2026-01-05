@@ -2,8 +2,9 @@
 
 import json
 import re
+import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Iterable, Set
 
 import pandas as pd
 from openpyxl import load_workbook, Workbook
@@ -118,8 +119,19 @@ def parse_model_response_to_rows(
     logger = logging.getLogger(__name__)
 
     # Try to extract JSON from the response
+    if response is None:
+        logger.warning("Model response is None")
+        return []
+
     response = response.strip()
     original_response = response  # Keep for fallback
+    if not original_response:
+        logger.warning("Model response is empty")
+        return []
+
+    if os.getenv("DEBUG_MODEL_RESPONSE") == "1":
+        snippet = original_response[:1000]
+        logger.info("Model response snippet (first 1000 chars): %s", snippet)
 
     # Handle markdown code blocks
     if "```json" in response:
@@ -135,7 +147,18 @@ def parse_model_response_to_rows(
 
     try:
         parsed = json.loads(response)
+        if isinstance(parsed, str):
+            parsed_str = parsed.strip()
+            if (parsed_str.startswith("{") and parsed_str.endswith("}")) or (
+                parsed_str.startswith("[") and parsed_str.endswith("]")
+            ):
+                try:
+                    parsed = json.loads(parsed_str)
+                except json.JSONDecodeError:
+                    pass
         rows = _normalize_parsed_data(parsed, headers)
+        if not rows:
+            logger.warning("Parsed response but produced 0 rows")
         logger.info(f"Parsed {len(rows)} rows from model response")
         return rows
 
@@ -207,9 +230,21 @@ def _normalize_parsed_data(parsed: Any, headers: List[str]) -> List[Dict[str, An
     # Handle dict
     if isinstance(parsed, dict):
         # Check if it's wrapped in a key like "data" or "rows"
-        for key in ["data", "rows", "records", "items", "results", "entries"]:
-            if key in parsed and isinstance(parsed[key], list):
-                return _normalize_parsed_data(parsed[key], headers)
+        wrapper_keys = [
+            "data", "rows", "records", "items", "results", "entries",
+            "output", "result", "response", "extracted_data"
+        ]
+        normalized_to_original = {_normalize_label(k): k for k in parsed.keys()}
+        for key in wrapper_keys:
+            original_key = normalized_to_original.get(_normalize_label(key))
+            if original_key and isinstance(parsed[original_key], (list, dict)):
+                return _normalize_parsed_data(parsed[original_key], headers)
+
+        # Handle key/value pair list under a common wrapper
+        for key, value in parsed.items():
+            if isinstance(value, list) and _looks_like_kv_pairs(value):
+                row = _kv_pairs_to_row(value)
+                return [row] if row else []
 
         # Check if values are arrays (columnar format) - need to transpose
         # e.g., {"Name": ["Alice", "Bob"], "Age": [25, 30]}
@@ -225,18 +260,27 @@ def _normalize_parsed_data(parsed: Any, headers: List[str]) -> List[Dict[str, An
             else:
                 array_values[key] = value
 
-        if has_array_values and max_len > 1:
-            # Transpose columnar data to rows
-            rows = []
-            for i in range(max_len):
-                row = {}
-                for key, value in array_values.items():
-                    if isinstance(value, list):
-                        row[key] = value[i] if i < len(value) else None
-                    else:
-                        row[key] = value  # Repeat scalar values
-                rows.append(row)
-            return rows
+        if has_array_values:
+            if max_len > 1:
+                # Transpose columnar data to rows
+                rows = []
+                for i in range(max_len):
+                    row = {}
+                    for key, value in array_values.items():
+                        if isinstance(value, list):
+                            row[key] = value[i] if i < len(value) else None
+                        else:
+                            row[key] = value  # Repeat scalar values
+                    rows.append(row)
+                return rows
+            # Flatten single-item lists into scalars
+            flattened = {}
+            for key, value in array_values.items():
+                if isinstance(value, list):
+                    flattened[key] = value[0] if value else None
+                else:
+                    flattened[key] = value
+            return [flattened]
 
         # Single object - return as single row
         return [parsed]
@@ -248,6 +292,9 @@ def _normalize_parsed_data(parsed: Any, headers: List[str]) -> List[Dict[str, An
 
         # Check if it's a list of objects
         if all(isinstance(item, dict) for item in parsed):
+            if _looks_like_kv_pairs(parsed):
+                row = _kv_pairs_to_row(parsed)
+                return [row] if row else []
             return parsed
 
         # Check if it's a list of lists (table format without headers)
@@ -272,3 +319,59 @@ def _normalize_parsed_data(parsed: Any, headers: List[str]) -> List[Dict[str, An
 
     # Other types - wrap in a dict
     return [{"raw_value": str(parsed)}]
+
+
+def _looks_like_kv_pairs(items: List[Dict[str, Any]]) -> bool:
+    """Detect list-of-dict key/value pairs like [{'field': 'X', 'value': 'Y'}]."""
+    if not items:
+        return False
+    key_fields = _normalize_labels((
+        "field", "name", "key", "label", "column", "header", "question",
+        "field_name", "fieldname"
+    ))
+    value_fields = _normalize_labels((
+        "value", "val", "answer", "text", "content", "field_value", "fieldvalue"
+    ))
+    for item in items:
+        if not isinstance(item, dict):
+            return False
+        normalized_keys = {_normalize_label(k) for k in item.keys()}
+        if not normalized_keys.intersection(key_fields):
+            return False
+        if not normalized_keys.intersection(value_fields):
+            return False
+    return True
+
+
+def _kv_pairs_to_row(items: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Convert list of key/value dicts into a single row dict."""
+    key_fields = _normalize_labels((
+        "field", "name", "key", "label", "column", "header", "question",
+        "field_name", "fieldname"
+    ))
+    value_fields = _normalize_labels((
+        "value", "val", "answer", "text", "content", "field_value", "fieldvalue"
+    ))
+    row: Dict[str, Any] = {}
+    for item in items:
+        key = _extract_first_value(item, key_fields)
+        if not key:
+            continue
+        value = _extract_first_value(item, value_fields, default=None)
+        row[key] = value
+    return row
+
+
+def _normalize_label(label: Any) -> str:
+    return re.sub(r"[^a-z0-9]+", "", str(label).lower())
+
+
+def _normalize_labels(labels: Iterable[str]) -> Set[str]:
+    return {_normalize_label(label) for label in labels}
+
+
+def _extract_first_value(item: Dict[str, Any], normalized_keys: Set[str], default: Any = "") -> Any:
+    for key, value in item.items():
+        if _normalize_label(key) in normalized_keys and value is not None:
+            return str(value).strip() if isinstance(value, str) else value
+    return default
