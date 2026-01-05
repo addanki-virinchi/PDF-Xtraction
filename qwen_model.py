@@ -1,5 +1,6 @@
 """QWEN Vision-Language Model integration module."""
 
+import importlib.util
 import logging
 import os
 import threading
@@ -43,6 +44,11 @@ def get_loading_status() -> Dict[str, Any]:
 def is_model_ready() -> bool:
     """Check if the model is loaded and ready for inference."""
     return _loading_status["state"] == "ready" and _model is not None
+
+
+def _is_flash_attn_available() -> bool:
+    """Return True if flash_attn is importable without importing it."""
+    return importlib.util.find_spec("flash_attn") is not None
 
 
 def load_model(force_reload: bool = False) -> Tuple[Any, Any]:
@@ -201,14 +207,27 @@ def load_model(force_reload: bool = False) -> Tuple[Any, Any]:
             else:
                 load_kwargs["torch_dtype"] = torch.bfloat16 if USE_FLASH_ATTENTION else "auto"
 
-        # Add flash attention if enabled (GPU only)
-        if USE_FLASH_ATTENTION and has_gpu:
-            logger.info("Using Flash Attention 2")
-            load_kwargs["attn_implementation"] = "flash_attention_2"
-            if "torch_dtype" not in load_kwargs:
-                load_kwargs["torch_dtype"] = torch.bfloat16
-        elif not has_gpu:
-            logger.info("Flash Attention not available on CPU")
+        # Add attention implementation configuration
+        flash_attn_available = _is_flash_attn_available()
+        if USE_FLASH_ATTENTION:
+            if has_gpu and flash_attn_available:
+                logger.info("Using Flash Attention 2")
+                load_kwargs["attn_implementation"] = "flash_attention_2"
+                if "torch_dtype" not in load_kwargs:
+                    load_kwargs["torch_dtype"] = torch.bfloat16
+            else:
+                fallback_impl = "sdpa" if has_gpu else "eager"
+                if has_gpu:
+                    logger.warning(
+                        "Flash Attention 2 requested but flash_attn is not installed. "
+                        f"Falling back to {fallback_impl} attention."
+                    )
+                else:
+                    logger.info("Flash Attention not available on CPU; using eager attention")
+                load_kwargs["attn_implementation"] = fallback_impl
+        else:
+            # Explicitly disable Flash Attention if model defaults to it
+            load_kwargs["attn_implementation"] = "sdpa" if has_gpu else "eager"
 
         quant_info = f"({QUANTIZATION_MODE})" if QUANTIZATION_MODE != "none" else "(full precision)"
         _loading_status["progress"] = f"Downloading/loading model weights {quant_info}..."
@@ -223,6 +242,20 @@ def load_model(force_reload: bool = False) -> Tuple[Any, Any]:
                 MODEL_NAME,
                 **load_kwargs
             )
+        except ImportError as e:
+            if "flash_attn" in str(e).lower():
+                fallback_impl = "sdpa" if has_gpu else "eager"
+                logger.warning(
+                    "FlashAttention2 is not available. Retrying with "
+                    f"{fallback_impl} attention."
+                )
+                load_kwargs["attn_implementation"] = fallback_impl
+                _model = model_class.from_pretrained(
+                    MODEL_NAME,
+                    **load_kwargs
+                )
+            else:
+                raise
         except OSError as e:
             if "paging file" in str(e).lower() or "1455" in str(e):
                 error_msg = (
